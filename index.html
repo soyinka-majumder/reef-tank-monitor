@@ -152,7 +152,7 @@
   /* Trends – Option C redesign */
   .tr-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text2);margin:14px 0 8px;}
   .tr-health-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:2px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 4px rgba(0,119,200,0.05);}
-  .tr-health-score{font-size:44px;font-weight:900;line-height:1;flex-shrink:0;width:72px;text-align:center;}
+  .tr-health-score{font-size:42px;font-weight:900;line-height:1;flex-shrink:0;min-width:72px;width:auto;}
   .tr-health-right{flex:1;}
   .tr-health-label{font-size:14px;font-weight:700;color:var(--text);margin-bottom:5px;}
   .tr-health-bar-bg{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:5px;}
@@ -679,10 +679,9 @@ function renderDashboard() {
 
 function renderDashGauges(records) {
   const card=document.getElementById('dash-chart-card');
-  const latest=records.length?records[records.length-1]:null;
+  // Use most recent record that has at least one param value (not a note-only entry)
+  const latest=[...records].reverse().find(r=>PARAMS.some(p=>r[p.key]!==null&&r[p.key]!==undefined))||null;
   if(!latest){card.style.display='none';return;}
-  const hasAny=PARAMS.some(p=>latest[p.key]!==null&&latest[p.key]!==undefined);
-  if(!hasAny){card.style.display='none';return;}
   card.style.display='block';
 
   const rows=PARAMS.map(p=>{
