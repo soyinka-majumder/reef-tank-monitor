@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Reef Monitor</title>
+<style>
+  :root {
+    --bg:#0a0f1e; --bg2:#111827; --bg3:#1f2937; --card:#1a2540;
+    --border:#2d3f5c; --text:#e2e8f0; --text2:#94a3b8;
+    --accent:#38bdf8; --green:#22c55e; --yellow:#f59e0b; --red:#ef4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;}
+  header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 20px 12px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;}
+  header h1{font-size:18px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:8px;}
+  .subtitle{font-size:11px;color:var(--text2);margin-top:2px;}
+  nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:100;}
+  nav button{flex:1;background:none;border:none;color:var(--text2);padding:8px 0 6px;font-size:9px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;letter-spacing:0.3px;text-transform:uppercase;transition:color 0.15s;}
+  nav button.active{color:var(--accent);}
+  nav button svg{width:18px;height:18px;}
+  .page{display:none;padding:16px;}
+  .page.active{display:block;}
+
+  /* Dashboard */
+  .last-updated{font-size:11px;color:var(--text2);margin-bottom:12px;}
+  .params-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .param-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 12px;position:relative;overflow:hidden;}
+  .param-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;}
+  .param-card.ok::before{background:var(--green);}
+  .param-card.warn::before{background:var(--yellow);}
+  .param-card.bad::before{background:var(--red);}
+  .param-card.no-data::before{background:var(--border);}
+  .param-name{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;}
+  .param-value{font-size:24px;font-weight:700;margin:4px 0 2px;line-height:1;}
+  .param-card.ok .param-value{color:var(--green);}
+  .param-card.warn .param-value{color:var(--yellow);}
+  .param-card.bad .param-value{color:var(--red);}
+  .param-card.no-data .param-value{color:var(--text2);font-size:16px;}
+  .param-unit{font-size:11px;color:var(--text2);}
+  .param-range{font-size:10px;color:var(--text2);margin-top:6px;}
+  .param-age{font-size:10px;color:var(--text2);margin-top:2px;}
+  .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:4px;}
+  .status-dot.ok{background:var(--green);}
+  .status-dot.warn{background:var(--yellow);}
+  .status-dot.bad{background:var(--red);animation:pulse 1.5s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+  /* Forms */
+  .section-title{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;}
+  .form-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-group label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;}
+  .form-group input{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px;font-size:16px;width:100%;-webkit-appearance:none;}
+  .form-group input:focus{outline:none;border-color:var(--accent);}
+  .form-group input::placeholder{color:var(--text2);opacity:0.5;}
+  .form-group .hint{font-size:10px;color:var(--text2);}
+  .date-row{margin-bottom:12px;}
+  .date-row input[type="datetime-local"]{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px;font-size:14px;width:100%;-webkit-appearance:none;}
+  .date-row input:focus{outline:none;border-color:var(--accent);}
+  .notes-row textarea{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px;font-size:14px;width:100%;height:72px;resize:none;font-family:inherit;}
+  .notes-row textarea::placeholder{color:var(--text2);opacity:0.5;}
+  .btn-primary{width:100%;background:var(--accent);color:#0a0f1e;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
+  .btn-primary:active{opacity:0.8;}
+  .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--green);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:all 0.3s;z-index:200;white-space:nowrap;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* History */
+  .filter-row{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
+  .filter-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;-webkit-appearance:none;}
+  .filter-btn.active{background:var(--accent);color:#0a0f1e;border-color:var(--accent);}
+  .history-list{display:flex;flex-direction:column;gap:10px;}
+  .history-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;}
+  .history-date{font-size:12px;color:var(--text2);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+  .history-date-actions{display:flex;gap:8px;}
+  .btn-icon{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;display:flex;align-items:center;}
+  .btn-edit{color:var(--accent);}
+  .btn-delete{color:var(--red);}
+  .history-params{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+  .history-param{text-align:center;}
+  .history-param-name{font-size:10px;color:var(--text2);text-transform:uppercase;}
+  .history-param-val{font-size:14px;font-weight:700;}
+  .history-param-val.ok{color:var(--green);}
+  .history-param-val.warn{color:var(--yellow);}
+  .history-param-val.bad{color:var(--red);}
+  .history-notes{font-size:11px;color:var(--text2);margin-top:10px;font-style:italic;border-top:1px solid var(--border);padding-top:8px;}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--text2);}
+  .empty-state svg{margin:0 auto 12px;display:block;opacity:0.3;}
+
+  /* Modal */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;align-items:flex-end;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:20px 16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
+  .modal-title{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;}
+  .btn-close{background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;}
+  .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+  .btn-cancel{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;}
+  .btn-save{background:var(--accent);color:#0a0f1e;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;}
+
+  /* Stability/Trends */
+  .stab-section-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;}
+  .combined-chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 10px 10px;margin-bottom:4px;}
+  #combined-chart{width:100%;display:block;}
+  .chart-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;padding:0 2px;}
+  .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+  .legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .chart-axis-label{font-size:10px;color:var(--text2);display:flex;justify-content:space-between;padding:2px 2px 0;}
+  .stability-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .stab-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;border-left:3px solid var(--border);}
+  .stab-card.ok{border-left-color:var(--green);}
+  .stab-card.warn{border-left-color:var(--yellow);}
+  .stab-card.bad{border-left-color:var(--red);}
+  .stab-name{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;}
+  .stab-score{font-size:22px;font-weight:800;line-height:1;}
+  .stab-card.ok .stab-score{color:var(--green);}
+  .stab-card.warn .stab-score{color:var(--yellow);}
+  .stab-card.bad .stab-score{color:var(--red);}
+  .stab-card.no-data .stab-score{color:var(--text2);font-size:16px;}
+  .stab-meta{font-size:10px;color:var(--text2);margin-top:4px;display:flex;gap:8px;align-items:center;}
+  .stab-bar-bg{height:4px;background:var(--bg3);border-radius:2px;margin-top:8px;}
+  .stab-bar{height:4px;border-radius:2px;}
+  .trend-section{margin-bottom:14px;}
+  .trend-header{font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+  .sparkline-container{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;}
+  canvas.sparkline{width:100%;height:52px;display:block;}
+  .trend-stats{display:flex;gap:12px;margin-top:6px;}
+  .trend-stat{font-size:10px;color:var(--text2);}
+  .trend-stat span{color:var(--text);font-weight:600;}
+
+  /* Dosing Calculator */
+  .dose-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;}
+  .dose-card-title{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+  .dose-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .dose-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 10px;font-size:15px;width:100%;-webkit-appearance:none;}
+  .dose-input:focus{outline:none;border-color:var(--accent);}
+  .dose-label{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;}
+  .dose-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+  .dose-result{background:var(--bg3);border-radius:10px;padding:12px;text-align:center;}
+  .dose-result-label{font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.4px;}
+  .dose-result-val{font-size:20px;font-weight:800;margin:4px 0 2px;}
+  .dose-result-val.part-a{color:#38bdf8;}
+  .dose-result-val.part-b{color:#a78bfa;}
+  .dose-result-val.part-c{color:#22c55e;}
+  .dose-result-val.part-d{color:#f97316;}
+  .dose-result-unit{font-size:10px;color:var(--text2);}
+  .dose-result-sub{font-size:9px;color:var(--text2);margin-top:3px;}
+  .dose-warn{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:10px;font-size:11px;color:var(--yellow);margin-top:10px;}
+  .dose-info{background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:10px;font-size:11px;color:var(--text2);margin-top:10px;line-height:1.6;}
+  .dose-info strong{color:var(--accent);}
+  .awc-drift-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;}
+  .drift-cell{background:var(--bg3);border-radius:8px;padding:8px;text-align:center;}
+  .drift-name{font-size:9px;color:var(--text2);text-transform:uppercase;font-weight:600;}
+  .drift-val{font-size:13px;font-weight:700;margin-top:2px;}
+  .drift-val.up{color:var(--green);}
+  .drift-val.down{color:var(--yellow);}
+  .drift-val.neutral{color:var(--text2);}
+  .btn-calc{width:100%;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.3);color:var(--accent);border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;}
+  .btn-calc:active{opacity:0.8;}
+  .tab-row{display:flex;gap:6px;margin-bottom:14px;}
+  .tab-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:7px 12px;font-size:11px;font-weight:600;cursor:pointer;flex:1;text-align:center;}
+  .tab-btn.active{background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.4);color:var(--accent);}
+  .dose-sub-page{display:none;}
+  .dose-sub-page.active{display:block;}
+  .divider{height:1px;background:var(--border);margin:12px 0;}
+  .awc-badge{background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);border-radius:6px;padding:3px 8px;font-size:10px;color:var(--green);font-weight:600;}
+  .awc-badge.neg{background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.25);color:var(--yellow);}
+  .consumption-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
+  .consumption-row:last-child{border-bottom:none;}
+  .consumption-label{font-size:12px;color:var(--text2);}
+  .consumption-val{font-size:13px;font-weight:700;color:var(--text);}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1><span>🐠</span> Reef Monitor</h1>
+    <div class="subtitle" id="tank-subtitle">Loading...</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+    <div id="overall-status"></div>
+    <div id="sync-status" style="font-size:10px;font-weight:600"></div>
+  </div>
+</header>
+
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page active">
+  <div class="last-updated" id="last-updated-text"></div>
+  <div class="params-grid" id="params-grid"></div>
+  <div id="dash-summary"></div>
+  <div class="form-card" style="margin-top:14px">
+    <div class="section-title" style="margin-bottom:8px">📝 Today's Note</div>
+    <div class="notes-row"><textarea id="dash-note" placeholder="e.g. coral looking healthy, added new fish, noticed something unusual..."></textarea></div>
+    <button class="btn-primary" onclick="saveDashNote()" style="margin-top:8px">Save Note</button>
+  </div>
+</div>
+
+<!-- LOG -->
+<div id="page-log" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div class="section-title" style="margin-bottom:0">Log Reading</div>
+    <button onclick="importHistorical()" style="background:none;border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:600;cursor:pointer">⬆ Re-import history</button>
+  </div>
+  <div style="font-size:11px;color:var(--text2);margin-bottom:12px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;">
+    💡 Same date = overwrites existing entry. One record per day.
+  </div>
+  <div class="form-card">
+    <div class="date-row"><div class="form-group"><label>Date &amp; Time</label><input type="datetime-local" id="log-datetime"></div></div>
+    <div class="form-row">
+      <div class="form-group"><label>Salinity</label><input type="text" inputmode="decimal" id="log-salinity" placeholder="1.026"><div class="hint">SG (1.024–1.026)</div></div>
+      <div class="form-group"><label>Temp</label><input type="text" inputmode="decimal" id="log-temp" placeholder="26.0"><div class="hint">°C (24–27)</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Alkalinity</label><input type="text" inputmode="decimal" id="log-alk" placeholder="8.5"><div class="hint">dKH (8–10)</div></div>
+      <div class="form-group"><label>Calcium</label><input type="text" inputmode="decimal" id="log-ca" placeholder="420"><div class="hint">ppm (380–450)</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Magnesium</label><input type="text" inputmode="decimal" id="log-mg" placeholder="1300"><div class="hint">ppm (1250–1400)</div></div>
+      <div class="form-group"><label>Phosphate</label><input type="text" inputmode="decimal" id="log-po4" placeholder="0.05"><div class="hint">ppm (0–0.1)</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Nitrite (NO₂)</label><input type="text" inputmode="decimal" id="log-no2" placeholder="0.0"><div class="hint">ppm (0–0.1)</div></div>
+      <div class="form-group"><label>Nitrate (NO₃)</label><input type="text" inputmode="decimal" id="log-no3" placeholder="5.0"><div class="hint">ppm (0–10)</div></div>
+    </div>
+    <div class="notes-row"><div class="form-group"><label>Notes</label><textarea id="log-notes" placeholder="e.g. water change, added coral..."></textarea></div></div>
+    <button class="btn-primary" onclick="saveLog()">Save Reading</button>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div id="page-history" class="page">
+  <div class="filter-row">
+    <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+    <button class="filter-btn" data-filter="week" onclick="setFilter('week')">This Week</button>
+    <button class="filter-btn" data-filter="month" onclick="setFilter('month')">This Month</button>
+  </div>
+  <div class="history-list" id="history-list"></div>
+</div>
+
+<!-- TRENDS -->
+<div id="page-trends" class="page">
+  <div id="trends-content"></div>
+</div>
+
+<!-- DOSE -->
+<div id="page-dose" class="page">
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="showDoseTab('target')">Dose to Target</button>
+    <button class="tab-btn" onclick="showDoseTab('maintain')">Daily Dose</button>
+    <button class="tab-btn" onclick="showDoseTab('awc')">AWC Impact</button>
+    <button class="tab-btn" onclick="showDoseTab('mg')">Mg Mix</button>
+  </div>
+
+  <!-- DOSE TO TARGET -->
+  <div id="dose-target" class="dose-sub-page active">
+    <div class="dose-card">
+      <div class="dose-card-title">⚗️ Tank Profile</div>
+      <div class="dose-row">
+        <div class="form-group"><div class="dose-label">Water Vol (L)</div><input class="dose-input" id="cfg-volume" type="text" inputmode="decimal" value="275" onchange="saveCfg()"></div>
+        <div class="form-group"><div class="dose-label">Daily AWC %</div><input class="dose-input" id="cfg-awc" type="text" inputmode="decimal" value="1.9" onchange="saveCfg()"></div>
+      </div>
+      <div class="dose-row">
+        <div class="form-group"><div class="dose-label">Salt Ca (ppm)</div><input class="dose-input" id="cfg-salt-ca" type="text" inputmode="decimal" value="420" onchange="saveCfg()"></div>
+        <div class="form-group"><div class="dose-label">Salt Alk (dKH)</div><input class="dose-input" id="cfg-salt-alk" type="text" inputmode="decimal" value="8.3" onchange="saveCfg()"></div>
+      </div>
+      <div class="dose-row">
+        <div class="form-group"><div class="dose-label">Salt Mg (ppm)</div><input class="dose-input" id="cfg-salt-mg" type="text" inputmode="decimal" value="1280" onchange="saveCfg()"></div>
+        <div class="form-group"><div class="dose-label">4th Part label</div><input class="dose-input" id="cfg-part-d" type="text" value="Reef Energy" style="font-size:13px" onchange="saveCfg()"></div>
+      </div>
+      <div class="dose-info" style="margin-top:4px">Your AWC removes <strong id="awc-litres">5.7L</strong>/day. Salt Mg is low — AWC is actively pulling Mg down unless you dose.</div>
+    </div>
+
+    <div class="dose-card">
+      <div class="dose-card-title">☁️ Cloud Sync (Google Sheets)</div>
+      <div class="dose-info" style="margin-top:0;margin-bottom:10px">Paste your Apps Script Web App URL here to sync data across all devices.</div>
+      <div class="form-group" style="margin-bottom:10px">
+        <div class="dose-label">Apps Script URL</div>
+        <input class="dose-input" id="cfg-gs-url" type="url" placeholder="https://script.google.com/macros/s/..." style="font-size:12px" onchange="saveGsUrl()">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-calc" onclick="syncFromSheets()" style="flex:1">↻ Sync Now</button>
+        <button class="btn-calc" onclick="pushAllToSheets()" style="flex:1;background:rgba(34,197,94,0.12);border-color:rgba(34,197,94,0.3);color:var(--green)">⬆ Upload All</button>
+      </div>
+      <div id="sync-detail" style="font-size:11px;color:var(--text2);margin-top:8px;min-height:16px"></div>
+    </div>
+
+    <div class="dose-card">
+      <div class="dose-card-title">🎯 Dose to Reach Target</div>
+      <div class="dose-info" style="margin-top:0;margin-bottom:12px">Current values auto-filled from latest log. Adjust targets as needed.<br><span style="color:var(--text-muted);font-size:11px">Alk → DSR KH+ (g) · Ca → Foundation A+ (ml) · Mg → AF Mg Flakes (g)</span></div>
+      <div class="dose-row">
+        <div class="form-group"><div class="dose-label">Current Alk (dKH)</div><input class="dose-input" id="dt-cur-alk" type="text" inputmode="decimal" placeholder="—"></div>
+        <div class="form-group"><div class="dose-label">Target Alk (dKH)</div><input class="dose-input" id="dt-tgt-alk" type="text" inputmode="decimal" value="9.0"></div>
+      </div>
+      <div class="dose-row">
+        <div class="form-group"><div class="dose-label">Current Ca (ppm)</div><input class="dose-input" id="dt-cur-ca" type="text" inputmode="decimal" placeholder="—"></div>
+        <div class="form-group"><div class="dose-label">Target Ca (ppm)</div><input class="dose-input" id="dt-tgt-ca" type="text" inputmode="decimal" value="420"></div>
+      </div>
+      <div class="dose-row">
+        <div class="form-group"><div class="dose-label">Current Mg (ppm)</div><input class="dose-input" id="dt-cur-mg" type="text" inputmode="decimal" placeholder="—"></div>
+        <div class="form-group"><div class="dose-label">Target Mg (ppm)</div><input class="dose-input" id="dt-tgt-mg" type="text" inputmode="decimal" value="1280"></div>
+      </div>
+      <button class="btn-calc" onclick="calcDoseToTarget()">Calculate Dose</button>
+      <div id="dt-results"></div>
+    </div>
+  </div>
+
+  <!-- DAILY MAINTENANCE -->
+  <div id="dose-maintain" class="dose-sub-page">
+    <div class="dose-card">
+      <div class="dose-card-title">📅 Daily Doser Schedule</div>
+      <div class="dose-info" style="margin-top:0;margin-bottom:12px">
+        Auto-calculates from your last 2 logged readings that contain each parameter. Your <strong>1.9% AWC</strong> is factored in — the AWC works against dosing for Alk/Ca (your salt is lower) and heavily against Mg.
+      </div>
+      <div class="dose-row">
+        <div class="form-group"><div class="dose-label">Target Alk (dKH)</div><input class="dose-input" id="mn-tgt-alk" type="text" inputmode="decimal" value="9.0"></div>
+        <div class="form-group"><div class="dose-label">Target Ca (ppm)</div><input class="dose-input" id="mn-tgt-ca" type="text" inputmode="decimal" value="420"></div>
+      </div>
+      <div class="dose-row">
+        <div class="form-group"><div class="dose-label">Target Mg (ppm)</div><input class="dose-input" id="mn-tgt-mg" type="text" inputmode="decimal" value="1280"></div>
+        <div class="form-group"></div>
+      </div>
+      <button class="btn-calc" onclick="calcDailyDose()">Calculate Daily Dose</button>
+      <div id="mn-results"></div>
+    </div>
+  </div>
+
+  <!-- AWC IMPACT -->
+  <div id="dose-awc" class="dose-sub-page">
+    <div class="dose-card">
+      <div class="dose-card-title">🔄 AWC Parameter Drift</div>
+      <div class="dose-info" style="margin-top:0;margin-bottom:12px">
+        With 1.9%/day AWC, your tank parameters are continuously being pulled toward your salt mix values. This shows where each parameter will be in 7, 14, and 30 days with <strong>no dosing</strong>.
+      </div>
+      <button class="btn-calc" onclick="calcAWCDrift()">Show Projection</button>
+      <div id="awc-results"></div>
+    </div>
+  </div>
+
+  <!-- MG SALT MIX CORRECTION -->
+  <div id="dose-mg" class="dose-sub-page">
+    <div class="dose-card">
+      <div class="dose-card-title">🧂 Mg Salt Mix Correction</div>
+      <div class="dose-info" style="margin-top:0;margin-bottom:12px">
+        Your "Basic Reef" salt measures <strong>1111 ppm Mg</strong> unmixed. Add <strong>Aquaforest Mg Flakes</strong> to each AWC batch to hit target. Your current pre-mixed batches deliver ~<strong>1280 ppm</strong> — use this to calculate how much to add.
+      </div>
+      <div class="dose-row">
+        <div class="form-group"><div class="dose-label">Batch Size (L)</div><input class="dose-input" id="mg-batch" type="text" inputmode="decimal" value="5.7"></div>
+        <div class="form-group"><div class="dose-label">Base Salt Mg (ppm)</div><input class="dose-input" id="mg-salt-val" type="text" inputmode="decimal" value="1111"></div>
+      </div>
+      <div class="dose-row">
+        <div class="form-group"><div class="dose-label">Target Mg (ppm)</div><input class="dose-input" id="mg-target" type="text" inputmode="decimal" value="1280"></div>
+        <div class="form-group"></div>
+      </div>
+      <button class="btn-calc" onclick="calcMgCorrection()">Calculate</button>
+      <div id="mg-results"></div>
+    </div>
+
+    <div class="dose-card">
+      <div class="dose-card-title">📐 Mg Supplement Reference</div>
+      <div class="dose-info" style="margin-top:0">
+        <strong>Aquaforest Mg Flakes (MgCl₂·6H₂O):</strong><br>
+        1g per 1L → raises Mg by <strong>~119.6 ppm</strong><br>
+        1g per 100L → raises Mg by <strong>~1.2 ppm</strong><br><br>
+        <strong>MgSO₄·7H₂O (Epsom salt):</strong><br>
+        1g per 100L → raises Mg by <strong>~0.99 ppm</strong><br>
+        (Epsom also adds sulfate — good for balance)<br><br>
+        <strong>Red Sea Foundation C:</strong><br>
+        1ml per 100L → raises Mg by <strong>~11 ppm</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Nav -->
+<nav>
+  <button class="active" onclick="showPage('dashboard')" id="nav-dashboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dash
+  </button>
+  <button onclick="showPage('log')" id="nav-log">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    Log
+  </button>
+  <button onclick="showPage('history')" id="nav-history">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4M3 16v-5h5"/></svg>
+    History
+  </button>
+  <button onclick="showPage('trends')" id="nav-trends">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Trends
+  </button>
+  <button onclick="showPage('dose')" id="nav-dose">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
+    Dose
+  </button>
+</nav>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">Edit Reading <button class="btn-close" onclick="closeModal()">✕</button></div>
+    <div class="date-row"><div class="form-group"><label>Date &amp; Time</label><input type="datetime-local" id="edit-datetime"></div></div>
+    <div class="form-row">
+      <div class="form-group"><label>Salinity (SG)</label><input type="text" inputmode="decimal" id="edit-salinity"></div>
+      <div class="form-group"><label>Temp (°C)</label><input type="text" inputmode="decimal" id="edit-temp"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Alk (dKH)</label><input type="text" inputmode="decimal" id="edit-alk"></div>
+      <div class="form-group"><label>Calcium (ppm)</label><input type="text" inputmode="decimal" id="edit-ca"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Magnesium (ppm)</label><input type="text" inputmode="decimal" id="edit-mg"></div>
+      <div class="form-group"><label>PO₄ (ppm)</label><input type="text" inputmode="decimal" id="edit-po4"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>NO₂ (ppm)</label><input type="text" inputmode="decimal" id="edit-no2"></div>
+      <div class="form-group"><label>NO₃ (ppm)</label><input type="text" inputmode="decimal" id="edit-no3"></div>
+    </div>
+    <div class="form-group" style="margin-top:8px">
+      <label>Notes</label>
+      <textarea id="edit-notes" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px;font-size:14px;width:100%;height:64px;resize:none;font-family:inherit"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Config ───────────────────────────────────────────────────────────────────
+const PARAMS = [
+  {key:'salinity',label:'Salinity',unit:'SG',  lo:1.024,hi:1.026, warn_lo:1.023,warn_hi:1.027},
+  {key:'temp',    label:'Temp',    unit:'°C',  lo:24,   hi:27,    warn_lo:23,   warn_hi:28.5 },
+  {key:'alk',     label:'Alk',     unit:'dKH', lo:8,    hi:10,    warn_lo:7,    warn_hi:11   },
+  {key:'ca',      label:'Ca',      unit:'ppm', lo:380,  hi:450,   warn_lo:350,  warn_hi:480  },
+  {key:'mg',      label:'Mg',      unit:'ppm', lo:1250, hi:1400,  warn_lo:1150, warn_hi:1500 },
+  {key:'po4',     label:'PO₄',     unit:'ppm', lo:0,    hi:0.1,   warn_lo:0,    warn_hi:0.2  },
+  {key:'no2',     label:'NO₂',     unit:'ppm', lo:0,    hi:0.1,   warn_lo:0,    warn_hi:0.25 },
+  {key:'no3',     label:'NO₃',     unit:'ppm', lo:0,    hi:10,    warn_lo:0,    warn_hi:20   },
+];
+const PARAM_COLORS = {
+  salinity:'#38bdf8',temp:'#f97316',alk:'#a78bfa',ca:'#22c55e',
+  mg:'#ec4899',po4:'#eab308',no2:'#ef4444',no3:'#14b8a6',
+};
+
+// Red Sea Foundation dosing rates
+// A+: 1ml per 100L raises Ca by 13 ppm  → factor = 1300
+// B+: 1ml per 100L raises Alk by 0.357 dKH → factor = 35.7
+// C:  1ml per 100L raises Mg by 11 ppm  → factor = 1100
+const RS = { A: 1300, B: 35.7, C: 1100 };
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+// Normalize locale-specific decimal separators (comma on iOS) to period before parsing.
+function parseDecimal(v) { return parseFloat(String(v).replace(',', '.')); }
+
+// Always use LOCAL date for day-boundary checks so IST (UTC+5:30) early-morning
+// logs don't flip to the previous UTC date and create duplicate entries.
+function localDateKey(tsOrDate) {
+  const d = tsOrDate instanceof Date ? tsOrDate : new Date(tsOrDate);
+  return d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+
+// ─── Storage ──────────────────────────────────────────────────────────────────
+let _memStore = null;
+function loadRecords() {
+  try { const r=localStorage.getItem('reef_records'); if(r) return JSON.parse(r); if(_memStore) return _memStore; return []; }
+  catch { return _memStore||[]; }
+}
+function saveRecords(records) {
+  _memStore=records;
+  try { localStorage.setItem('reef_records',JSON.stringify(records)); } catch {}
+}
+function loadCfg() {
+  try { return JSON.parse(localStorage.getItem('reef_cfg')||'{}'); } catch { return {}; }
+}
+function saveCfg() {
+  const cfg = {
+    volume: parseDecimal(document.getElementById('cfg-volume').value)||275,
+    awc:    parseDecimal(document.getElementById('cfg-awc').value)||1.9,
+    saltCa: parseDecimal(document.getElementById('cfg-salt-ca').value)||420,
+    saltAlk:parseDecimal(document.getElementById('cfg-salt-alk').value)||8.3,
+    saltMg: parseDecimal(document.getElementById('cfg-salt-mg').value)||1280,
+    partD:  document.getElementById('cfg-part-d').value||'Reef Energy',
+  };
+  try { localStorage.setItem('reef_cfg',JSON.stringify(cfg)); } catch {}
+  document.getElementById('awc-litres').textContent =
+    ((cfg.volume / (1 - cfg.awc/100)) * (cfg.awc/100)).toFixed(1) + 'L';
+}
+function getCfg() {
+  const c=loadCfg();
+  return {
+    volume: c.volume||275, awc: c.awc||1.9,
+    saltCa: c.saltCa||420, saltAlk: c.saltAlk||8.3, saltMg: c.saltMg||1280,
+    partD:  c.partD||'Reef Energy',
+  };
+}
+
+// ─── Historical seed ──────────────────────────────────────────────────────────
+const HISTORICAL_DATA = [
+  {ts:"2026-04-28T12:00:00.000Z",alk:9.3, ca:410, mg:1270,po4:null, no2:null, no3:null, salinity:1.026,temp:25.6,notes:""},
+  {ts:"2026-04-29T12:00:00.000Z",alk:9.3, ca:420, mg:1300,po4:null, no2:null, no3:null, salinity:1.026,temp:25.5,notes:""},
+  {ts:"2026-04-30T12:00:00.000Z",alk:9.1, ca:420, mg:1270,po4:null, no2:null, no3:null, salinity:1.026,temp:25.7,notes:""},
+  {ts:"2026-05-01T12:00:00.000Z",alk:8.9, ca:null,mg:null,po4:null, no2:null, no3:null, salinity:1.026,temp:25.8,notes:""},
+  {ts:"2026-05-02T12:00:00.000Z",alk:null,ca:null,mg:null,po4:null, no2:null, no3:null, salinity:1.026,temp:25.6,notes:""},
+  {ts:"2026-05-09T12:00:00.000Z",alk:8.6, ca:430, mg:1270,po4:null, no2:null, no3:null, salinity:1.026,temp:25.9,notes:""},
+  {ts:"2026-05-10T12:00:00.000Z",alk:8.9, ca:null,mg:null,po4:null, no2:null, no3:null, salinity:1.026,temp:26.0,notes:""},
+  {ts:"2026-05-11T12:00:00.000Z",alk:9.3, ca:430, mg:1260,po4:null, no2:null, no3:null, salinity:1.026,temp:25.8,notes:""},
+  {ts:"2026-05-12T12:00:00.000Z",alk:null,ca:null,mg:null,po4:null, no2:null, no3:null, salinity:1.026,temp:25.9,notes:""},
+  {ts:"2026-05-13T12:00:00.000Z",alk:9.6, ca:390, mg:1230,po4:null, no2:null, no3:null, salinity:1.026,temp:26.1,notes:""},
+  {ts:"2026-05-14T12:00:00.000Z",alk:9.9, ca:null,mg:null,po4:null, no2:null, no3:null, salinity:1.026,temp:26.0,notes:""},
+  {ts:"2026-05-15T12:00:00.000Z",alk:9.3, ca:null,mg:null,po4:null, no2:null, no3:null, salinity:1.026,temp:26.2,notes:""},
+  {ts:"2026-05-16T12:00:00.000Z",alk:9.3, ca:null,mg:null,po4:null, no2:null, no3:null, salinity:1.026,temp:26.1,notes:""},
+  {ts:"2026-05-17T12:00:00.000Z",alk:9.3, ca:null,mg:null,po4:null, no2:null, no3:null, salinity:1.026,temp:26.0,notes:""},
+  {ts:"2026-05-20T12:00:00.000Z",alk:9.3, ca:440, mg:1250,po4:null, no2:0.05, no3:10,  salinity:1.026,temp:26.2,notes:""},
+  {ts:"2026-05-23T12:00:00.000Z",alk:9.3, ca:440, mg:1270,po4:null, no2:0.05, no3:10,  salinity:1.026,temp:26.1,notes:""},
+  {ts:"2026-05-30T12:00:00.000Z",alk:9.3, ca:410, mg:1250,po4:0.5,  no2:0.025,no3:10,  salinity:1.026,temp:26.3,notes:"PO4 spike"},
+  {ts:"2026-06-06T12:00:00.000Z",alk:8.9, ca:450, mg:1290,po4:0.15, no2:0.05, no3:10,  salinity:1.026,temp:26.3,notes:""},
+  {ts:"2026-06-14T12:00:00.000Z",alk:8.9, ca:450, mg:1290,po4:0.15, no2:0.1,  no3:15,  salinity:1.025,temp:26.4,notes:""},
+  {ts:"2026-06-20T12:00:00.000Z",alk:null,ca:529, mg:1281,po4:0.1,  no2:null, no3:14,  salinity:1.026,temp:26.5,notes:""},
+];
+function importHistorical() {
+  const existing=loadRecords();
+  const existingDates=new Set(existing.map(r=>localDateKey(r.ts)));
+  const toAdd=HISTORICAL_DATA.filter(r=>!existingDates.has(localDateKey(r.ts)));
+  if(!toAdd.length){showToast('Already up to date');return;}
+  const combined=[...existing,...toAdd].sort((a,b)=>new Date(a.ts)-new Date(b.ts));
+  saveRecords(combined); renderDashboard(); renderHistory();
+  showToast(`${toAdd.length} readings imported ✓`);
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function getStatus(param,value) {
+  if(value===null||value===undefined||value==='') return 'no-data';
+  const v=parseFloat(value);
+  if(v>=param.lo&&v<=param.hi) return 'ok';
+  if(v>=param.warn_lo&&v<=param.warn_hi) return 'warn';
+  return 'bad';
+}
+function timeAgo(ts) {
+  const diff=Date.now()-new Date(ts).getTime(), mins=Math.floor(diff/60000);
+  if(mins<1) return 'just now'; if(mins<60) return `${mins}m ago`;
+  const hrs=Math.floor(mins/60); if(hrs<24) return `${hrs}h ago`;
+  return `${Math.floor(hrs/24)}d ago`;
+}
+function formatDT(ts) {
+  const d=new Date(ts);
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
+    +' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtMl(v) { return v<=0?'0.0':v.toFixed(1); }
+function fmtNum(v,dp=1) { return typeof v==='number'?v.toFixed(dp):'—'; }
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const records=loadRecords(), latest=records.length?records[records.length-1]:null;
+  document.getElementById('tank-subtitle').textContent=records.length
+    ?`${records.length} reading${records.length!==1?'s':''} logged`:'No readings yet';
+  document.getElementById('last-updated-text').textContent=latest
+    ?`Last reading: ${formatDT(latest.ts)}`:'Add your first reading using the Log tab';
+  const grid=document.getElementById('params-grid'); grid.innerHTML='';
+  let bad=0,warn=0;
+  PARAMS.forEach(p=>{
+    const val=latest?latest[p.key]:null, status=getStatus(p,val);
+    if(status==='bad')bad++; if(status==='warn')warn++;
+    const card=document.createElement('div'); card.className=`param-card ${status}`;
+    const dv=(val!==null&&val!==undefined&&val!=='')?parseFloat(val):null;
+    card.innerHTML=`<div class="param-name">${p.label}</div>
+      <div class="param-value">${dv!==null?dv:'—'}</div>
+      <div class="param-unit">${p.unit}</div>
+      <div class="param-range">Target: ${p.lo}–${p.hi}</div>
+      ${latest?`<div class="param-age">${timeAgo(latest.ts)}</div>`:''}`;
+    grid.appendChild(card);
+  });
+  document.getElementById('overall-status').innerHTML=!latest?'':
+    bad>0?'<span class="status-dot bad"></span>':
+    warn>0?'<span class="status-dot warn"></span>':'<span class="status-dot ok"></span>';
+
+  // Summary section
+  const summaryEl=document.getElementById('dash-summary');
+  if(!latest){summaryEl.innerHTML='';return;}
+  const issues=[],warnings=[],good=[];
+  PARAMS.forEach(p=>{
+    const val=latest[p.key], st=getStatus(p,val);
+    if(val!==null&&val!==undefined){
+      if(st==='bad') issues.push(`${p.label} ${val}${p.unit}`);
+      else if(st==='warn') warnings.push(`${p.label} ${val}${p.unit}`);
+      else good.push(p.label);
+    }
+  });
+  const lastNoteEntry=[...records].reverse().find(r=>r.notes&&r.notes.trim());
+  let s=`<div class="form-card" style="margin-top:14px;margin-bottom:0">
+    <div class="section-title" style="margin-bottom:10px">📋 Status Summary</div>`;
+  if(!issues.length&&!warnings.length&&good.length)
+    s+=`<div style="color:var(--green);font-size:13px;margin-bottom:6px">✓ All tested params in range</div>`;
+  if(issues.length)
+    s+=`<div style="color:var(--red);font-size:13px;margin-bottom:6px;line-height:1.5">⚠️ <strong>Out of range:</strong> ${issues.join(' · ')}</div>`;
+  if(warnings.length)
+    s+=`<div style="color:var(--yellow);font-size:13px;margin-bottom:6px;line-height:1.5">⚡ <strong>Watch:</strong> ${warnings.join(' · ')}</div>`;
+  const untested=PARAMS.filter(p=>latest[p.key]===null||latest[p.key]===undefined).map(p=>p.label);
+  if(untested.length)
+    s+=`<div style="color:var(--text2);font-size:11px;margin-bottom:6px">Not tested: ${untested.join(', ')}</div>`;
+  if(lastNoteEntry)
+    s+=`<div style="font-size:11px;color:var(--text2);border-top:1px solid var(--border);padding-top:8px;margin-top:6px;font-style:italic">📌 ${formatDT(lastNoteEntry.ts)}: ${lastNoteEntry.notes}</div>`;
+  s+=`</div>`;
+  summaryEl.innerHTML=s;
+}
+
+// ─── Dashboard quick note ─────────────────────────────────────────────────────
+function saveDashNote() {
+  const note=document.getElementById('dash-note').value.trim();
+  if(!note){showToast('Write a note first','warn');return;}
+  const records=loadRecords();
+  const today=localDateKey(new Date());
+  const idx=records.findIndex(r=>localDateKey(r.ts)===today);
+  let savedRec;
+  if(idx>=0){
+    records[idx].notes=(records[idx].notes?records[idx].notes+' · ':'')+note;
+    savedRec=records[idx];
+    showToast('Note added ✓');
+  } else {
+    const rec={ts:new Date().toISOString(),notes:note};
+    PARAMS.forEach(p=>rec[p.key]=null);
+    records.push(rec);
+    records.sort((a,b)=>new Date(a.ts)-new Date(b.ts));
+    savedRec=rec;
+    showToast('Note saved ✓');
+  }
+  saveRecords(records);
+  pushRecord(savedRec);
+  document.getElementById('dash-note').value='';
+  renderDashboard(); renderHistory();
+}
+
+// ─── Log ──────────────────────────────────────────────────────────────────────
+function initLogForm() {
+  const now=new Date(), pad=n=>String(n).padStart(2,'0');
+  document.getElementById('log-datetime').value=
+    `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+}
+function saveLog() {
+  const dt=document.getElementById('log-datetime').value;
+  if(!dt){showToast('Set a date/time','error');return;}
+  const record={ts:new Date(dt).toISOString()};
+  let hasAny=false;
+  PARAMS.forEach(p=>{
+    const v=document.getElementById(`log-${p.key}`).value;
+    record[p.key]=v!==''?parseDecimal(v):null; if(v!=='')hasAny=true;
+  });
+  record.notes=document.getElementById('log-notes').value.trim();
+  if(!hasAny&&!record.notes){showToast('Enter a value or note','warn');return;}
+  const records=loadRecords();
+  const dateKey=localDateKey(record.ts);
+  const idx=records.findIndex(r=>localDateKey(r.ts)===dateKey);
+  if(idx>=0){records[idx]=record;showToast('Reading updated ✓');}
+  else{records.push(record);showToast('Reading saved ✓');}
+  records.sort((a,b)=>new Date(a.ts)-new Date(b.ts));
+  saveRecords(records);
+  pushRecord(record);
+  PARAMS.forEach(p=>{document.getElementById(`log-${p.key}`).value='';});
+  document.getElementById('log-notes').value=''; initLogForm();
+  renderDashboard(); renderHistory();
+}
+
+// ─── History ──────────────────────────────────────────────────────────────────
+let currentFilter='all', editIndex=null;
+function setFilter(f) {
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));
+  renderHistory();
+}
+function renderHistory() {
+  const all=loadRecords(); let records=[...all].reverse();
+  const now=new Date();
+  if(currentFilter==='week') records=records.filter(r=>new Date(r.ts)>=new Date(now-7*86400000));
+  else if(currentFilter==='month') records=records.filter(r=>new Date(r.ts)>=new Date(now.getFullYear(),now.getMonth()-1,now.getDate()));
+  const list=document.getElementById('history-list');
+  if(!records.length){
+    list.innerHTML=`<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg><p>No readings in this period</p></div>`;
+    return;
+  }
+  list.innerHTML=records.map(r=>{
+    const origIdx=all.findIndex(x=>x.ts===r.ts&&x.notes===r.notes);
+    const cells=PARAMS.map(p=>{
+      const val=r[p.key],st=getStatus(p,val);
+      return `<div class="history-param"><div class="history-param-name">${p.label}</div>
+        <div class="history-param-val ${st}">${val!==null&&val!==undefined?val:'<span style="font-size:11px">—</span>'}</div></div>`;
+    }).join('');
+    return `<div class="history-card">
+      <div class="history-date"><span>${formatDT(r.ts)}</span>
+        <div class="history-date-actions">
+          <button class="btn-icon btn-edit" onclick="openEdit(${origIdx})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="btn-icon btn-delete" onclick="deleteRecord(${origIdx})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+        </div>
+      </div>
+      <div class="history-params">${cells}</div>
+      ${r.notes?`<div class="history-notes">${r.notes}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function deleteRecord(idx) {
+  if(!confirm('Delete this reading?'))return;
+  const records=loadRecords(); records.splice(idx,1); saveRecords(records);
+  renderDashboard(); renderHistory(); showToast('Deleted');
+}
+function openEdit(idx) {
+  editIndex=idx; const r=loadRecords()[idx];
+  const pad=n=>String(n).padStart(2,'0'), d=new Date(r.ts);
+  document.getElementById('edit-datetime').value=
+    `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  PARAMS.forEach(p=>{document.getElementById(`edit-${p.key}`).value=(r[p.key]!==null&&r[p.key]!==undefined)?r[p.key]:'';});
+  document.getElementById('edit-notes').value=r.notes||'';
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeModal(){document.getElementById('edit-modal').classList.remove('open');editIndex=null;}
+function saveEdit() {
+  if(editIndex===null)return;
+  const dt=document.getElementById('edit-datetime').value;
+  if(!dt){showToast('Set a date/time','error');return;}
+  const records=loadRecords(), record={ts:new Date(dt).toISOString()};
+  PARAMS.forEach(p=>{const v=document.getElementById(`edit-${p.key}`).value; record[p.key]=v!==''?parseDecimal(v):null;});
+  record.notes=document.getElementById('edit-notes').value.trim();
+  records[editIndex]=record; records.sort((a,b)=>new Date(a.ts)-new Date(b.ts));
+  saveRecords(records); pushRecord(record); closeModal();
+  renderDashboard(); renderHistory(); renderTrends(); showToast('Updated ✓');
+}
+
+// ─── Trends ───────────────────────────────────────────────────────────────────
+function normalize(val,param){const r=param.hi-param.lo;if(!r)return 50;return((val-param.lo)/r)*100;}
+function getTrendArrow(vals,param){
+  const def=vals.filter(v=>v!==null&&v!==undefined);
+  if(def.length<4)return'→ Stable';
+  const recent=def.slice(-3).reduce((a,b)=>a+b,0)/3;
+  const prev=def.slice(-6,-3).reduce((a,b)=>a+b,0)/Math.max(def.slice(-6,-3).length,1);
+  const mid=(param.lo+param.hi)/2;
+  const rd=Math.abs(recent-mid),pd=Math.abs(prev-mid);
+  if(rd<pd*0.92)return'↗ Improving'; if(rd>pd*1.08)return'↘ Drifting'; return'→ Stable';
+}
+function renderTrends(){
+  const records=loadRecords(), container=document.getElementById('trends-content');
+  if(records.length<2){container.innerHTML=`<div class="empty-state" style="padding-top:60px"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><p style="margin-top:12px">Log at least 2 readings to see trends</p></div>`;return;}
+  const last20=records.slice(-20);
+  container.innerHTML=`
+    <div class="stab-section-title">All Parameters · Normalized (0–100% = target range)</div>
+    <div class="combined-chart-card"><canvas id="combined-chart" height="200"></canvas>
+      <div class="chart-axis-label"><span>0% (low)</span><span>50% (mid)</span><span>100% (high)</span></div>
+      <div class="chart-legend" id="chart-legend"></div></div>
+    <div class="stab-section-title" style="margin-top:18px">Stability by Parameter</div>
+    <div class="stability-grid" id="stability-grid"></div>
+    <div class="stab-section-title" style="margin-top:18px">Individual Trends</div>
+    <div id="individual-trends"></div>`;
+  requestAnimationFrame(()=>{drawCombinedChart(last20);renderStabilityCards(records,last20);renderIndividualTrends(last20);});
+}
+function drawCombinedChart(last20){
+  const canvas=document.getElementById('combined-chart');if(!canvas)return;
+  const dpr=window.devicePixelRatio||1,w=canvas.offsetWidth,h=200;
+  canvas.width=w*dpr;canvas.height=h*dpr;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const padL=28,padR=10,padT=10,padB=10,chartW=w-padL-padR,chartH=h-padT-padB;
+  const yMin=-30,yMax=130,yRange=yMax-yMin;
+  const toY=v=>padT+chartH-((v-yMin)/yRange)*chartH;
+  const toX=i=>padL+(i/(last20.length-1))*chartW;
+  [0,25,50,75,100].forEach(pct=>{
+    const y=toY(pct);ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+chartW,y);
+    ctx.strokeStyle=(pct===0||pct===100)?'rgba(56,189,248,0.25)':'rgba(255,255,255,0.05)';
+    ctx.lineWidth=(pct===0||pct===100)?1.5:1;ctx.stroke();
+    ctx.fillStyle='rgba(148,163,184,0.7)';ctx.font='9px -apple-system,sans-serif';
+    ctx.textAlign='right';ctx.fillText(pct+'%',padL-4,y+3);
+  });
+  ctx.fillStyle='rgba(34,197,94,0.08)';ctx.fillRect(padL,toY(100),chartW,toY(0)-toY(100));
+  ctx.fillStyle='rgba(34,197,94,0.35)';ctx.font='bold 9px -apple-system,sans-serif';
+  ctx.textAlign='left';ctx.fillText('TARGET',padL+4,toY(50)+4);
+  PARAMS.forEach(param=>{
+    const color=PARAM_COLORS[param.key];
+    const points=last20.map((r,i)=>{const v=r[param.key];if(v===null||v===undefined)return null;return{x:toX(i),y:toY(normalize(v,param))};});
+    ctx.beginPath();let started=false;
+    points.forEach(pt=>{if(!pt){started=false;return;}if(!started){ctx.moveTo(pt.x,pt.y);started=true;}else ctx.lineTo(pt.x,pt.y);});
+    ctx.strokeStyle=color;ctx.lineWidth=1.8;ctx.lineJoin='round';ctx.stroke();
+    points.forEach((pt,i)=>{if(!pt)return;const v=last20[i][param.key],st=getStatus(param,v);
+      ctx.beginPath();ctx.arc(pt.x,pt.y,st==='bad'?4:2.5,0,Math.PI*2);
+      ctx.fillStyle=st==='bad'?'#ef4444':st==='warn'?'#f59e0b':color;ctx.fill();});
+  });
+  const legend=document.getElementById('chart-legend');
+  if(legend)legend.innerHTML=PARAMS.map(p=>{
+    const lr=[...last20].reverse().find(r=>r[p.key]!==null&&r[p.key]!==undefined);
+    const lv=lr?lr[p.key]:null,st=getStatus(p,lv);
+    const sc=st==='ok'?'#22c55e':st==='warn'?'#f59e0b':st==='bad'?'#ef4444':PARAM_COLORS[p.key];
+    return `<div class="legend-item"><span class="legend-dot" style="background:${PARAM_COLORS[p.key]}"></span>${p.label}${lv!==null?` <span style="color:${sc};font-weight:700">${lv}</span>`:''}</div>`;
+  }).join('');
+}
+function renderStabilityCards(allRecords,last20){
+  const grid=document.getElementById('stability-grid');if(!grid)return;
+  grid.innerHTML=PARAMS.map(param=>{
+    const allVals=allRecords.map(r=>r[param.key]).filter(v=>v!==null&&v!==undefined);
+    if(!allVals.length)return`<div class="stab-card no-data"><div class="stab-name">${param.label}</div><div class="stab-score">—</div><div class="stab-meta">No data</div></div>`;
+    const inRange=allVals.filter(v=>getStatus(param,v)==='ok').length;
+    const pct=Math.round((inRange/allVals.length)*100);
+    let streak=0;for(let i=allRecords.length-1;i>=0;i--){const v=allRecords[i][param.key];if(v===null||v===undefined)continue;if(getStatus(param,v)==='ok')streak++;else break;}
+    const overallStatus=pct>=80?'ok':pct>=50?'warn':'bad';
+    const trend=getTrendArrow(last20.map(r=>r[param.key]),param);
+    const trendColor=trend.startsWith('↗')?'#22c55e':trend.startsWith('↘')?'#f59e0b':'#94a3b8';
+    const barColor=pct>=80?'#22c55e':pct>=50?'#f59e0b':'#ef4444';
+    return`<div class="stab-card ${overallStatus}">
+      <div class="stab-name">${param.label} <span style="color:${PARAM_COLORS[param.key]};font-size:10px">●</span></div>
+      <div class="stab-score">${pct}%</div>
+      <div class="stab-meta"><span>${allVals.length} readings</span><span>·</span><span>${streak>0?`🔥${streak} ok`:'—'}</span></div>
+      <div class="stab-meta" style="margin-top:2px;color:${trendColor}">${trend}</div>
+      <div class="stab-bar-bg"><div class="stab-bar" style="width:${pct}%;background:${barColor}"></div></div>
+    </div>`;
+  }).join('');
+}
+function renderIndividualTrends(last20){
+  const container=document.getElementById('individual-trends');if(!container)return;
+  container.innerHTML=PARAMS.map(p=>{
+    const defined=last20.map(r=>r[p.key]).filter(v=>v!==null&&v!==undefined);
+    if(!defined.length)return'';
+    const avg=defined.reduce((a,b)=>a+b,0)/defined.length,latest=defined[defined.length-1],status=getStatus(p,latest);
+    const sc=status==='ok'?'#22c55e':status==='warn'?'#f59e0b':'#ef4444';
+    return`<div class="trend-section">
+      <div class="trend-header"><span style="background:${PARAM_COLORS[p.key]};width:10px;height:10px;border-radius:50%;display:inline-block"></span>
+        ${p.label} <span style="font-size:10px;color:var(--text2)">(${p.unit})</span>
+        <span class="status-dot ${status}" style="margin-left:auto"></span></div>
+      <div class="sparkline-container">
+        <canvas class="sparkline" id="spark-${p.key}" height="52"></canvas>
+        <div class="trend-stats">
+          <div class="trend-stat">Now <span style="color:${sc}">${latest}</span></div>
+          <div class="trend-stat">Avg <span>${avg.toFixed(2)}</span></div>
+          <div class="trend-stat">Min <span>${Math.min(...defined)}</span></div>
+          <div class="trend-stat">Max <span>${Math.max(...defined)}</span></div>
+        </div>
+      </div></div>`;
+  }).join('');
+  requestAnimationFrame(()=>{
+    PARAMS.forEach(p=>{
+      const canvas=document.getElementById(`spark-${p.key}`);if(!canvas)return;
+      const vals=last20.map(r=>r[p.key]).filter(v=>v!==null&&v!==undefined);if(vals.length<2)return;
+      drawSparkline(canvas,vals,p);
+    });
+  });
+}
+function drawSparkline(canvas,vals,param){
+  const dpr=window.devicePixelRatio||1,w=canvas.offsetWidth,h=52;
+  canvas.width=w*dpr;canvas.height=h*dpr;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const pad=6,spread=(param.hi-param.lo)*0.1;
+  const allV=[param.lo,param.hi,...vals];
+  const min=Math.min(...allV)-spread,max=Math.max(...allV)+spread,range=max-min||1;
+  const getX=i=>pad+(i/(vals.length-1))*(w-pad*2);
+  const getY=v=>h-pad-((v-min)/range)*(h-pad*2);
+  ctx.fillStyle='rgba(34,197,94,0.10)';ctx.fillRect(pad,getY(param.hi),w-pad*2,getY(param.lo)-getY(param.hi));
+  ctx.beginPath();ctx.moveTo(getX(0),getY(vals[0]));
+  for(let i=1;i<vals.length;i++)ctx.lineTo(getX(i),getY(vals[i]));
+  ctx.strokeStyle=PARAM_COLORS[param.key];ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
+  vals.forEach((v,i)=>{
+    const st=getStatus(param,v);
+    ctx.beginPath();ctx.arc(getX(i),getY(v),st==='bad'?4:2.5,0,Math.PI*2);
+    ctx.fillStyle=st==='ok'?PARAM_COLORS[param.key]:st==='warn'?'#f59e0b':'#ef4444';ctx.fill();
+  });
+}
+
+// ─── Dosing Calculator ────────────────────────────────────────────────────────
+
+function showDoseTab(name) {
+  document.querySelectorAll('.dose-sub-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`dose-${name}`).classList.add('active');
+  const tabs=['target','maintain','awc','mg'];
+  document.querySelectorAll('.tab-btn')[tabs.indexOf(name)].classList.add('active');
+}
+
+// Get the last 2 records that contain a value for a specific key
+function lastTwoWith(key) {
+  const records=loadRecords();
+  const found=[];
+  for(let i=records.length-1;i>=0&&found.length<2;i--) {
+    if(records[i][key]!==null&&records[i][key]!==undefined) found.push(records[i]);
+  }
+  return found; // [most recent, previous]
+}
+
+// Consumption per day accounting for AWC dilution
+// actual_consumption = observed_drop/day + awc_drift_at_avg (how much AWC added/removed)
+function consumptionPerDay(key, saltVal) {
+  const [r1, r2] = lastTwoWith(key);
+  if(!r1||!r2) return null;
+  const days = Math.max((new Date(r1.ts)-new Date(r2.ts))/(1000*86400), 0.5);
+  const observed_drop_per_day = (r2[key] - r1[key]) / days; // positive = tank dropped
+  const cfg = getCfg();
+  const awcFrac = cfg.awc / 100;
+  const avgVal = (r1[key]+r2[key])/2;
+  // AWC daily effect: (saltVal - avgVal) * awcFrac
+  // positive = AWC adding to tank, negative = AWC removing
+  const awcDaily = (saltVal - avgVal) * awcFrac;
+  // Coral consumption = observed_drop + AWC_addition (if AWC was adding, it masked coral use)
+  const coralConsumption = observed_drop_per_day + awcDaily;
+  return {coralConsumption, awcDaily, observed_drop_per_day, days, r1, r2};
+}
+
+// ── Dose to Target ────────────────────────────────────────────────────────────
+// DSR KH+: 3g per 100L = 1 dKH  →  grams = ΔdKH × volume_L × 3 / 100
+// Aquaforest Mg Flakes (MgCl₂·6H₂O): 119.56 ppm per g/L  →  grams = ΔMg × volume_L / 119.56
+const DSR_KH_FACTOR = 3;     // g per 100L per dKH
+const MGFLAKE_FACTOR = 119.56; // ppm Mg per g/L
+
+function initDoseToTarget() {
+  const records=loadRecords(), latest=records.length?records[records.length-1]:null;
+  if(latest) {
+    ['alk','ca','mg'].forEach(k=>{
+      const el=document.getElementById(`dt-cur-${k}`);
+      if(latest[k]!==null&&latest[k]!==undefined) el.value=latest[k];
+    });
+  }
+}
+function calcDoseToTarget() {
+  const cfg=getCfg();
+  const curAlk=parseDecimal(document.getElementById('dt-cur-alk').value);
+  const tgtAlk=parseDecimal(document.getElementById('dt-tgt-alk').value);
+  const curCa =parseDecimal(document.getElementById('dt-cur-ca').value);
+  const tgtCa =parseDecimal(document.getElementById('dt-tgt-ca').value);
+  const curMg =parseDecimal(document.getElementById('dt-cur-mg').value);
+  const tgtMg =parseDecimal(document.getElementById('dt-tgt-mg').value);
+  const V=cfg.volume;
+
+  // Alk: DSR KH+ in grams
+  const gAlk = (!isNaN(curAlk)&&!isNaN(tgtAlk)&&tgtAlk>curAlk)
+    ? Math.max(0,(tgtAlk-curAlk)*V*DSR_KH_FACTOR/100) : 0;
+  // Ca: Red Sea Foundation A+ in ml
+  const mlA = (!isNaN(curCa)&&!isNaN(tgtCa)&&tgtCa>curCa)
+    ? Math.max(0,(tgtCa-curCa)*V/RS.A) : 0;
+  // Mg: Aquaforest Mg Flakes in grams
+  const gMg = (!isNaN(curMg)&&!isNaN(tgtMg)&&tgtMg>curMg)
+    ? Math.max(0,(tgtMg-curMg)*V/MGFLAKE_FACTOR) : 0;
+
+  const dAlk = (!isNaN(curAlk)&&!isNaN(tgtAlk))?(tgtAlk-curAlk).toFixed(1):'?';
+  const dCa  = (!isNaN(curCa) &&!isNaN(tgtCa)) ?(tgtCa-curCa).toFixed(0):'?';
+  const dMg  = (!isNaN(curMg) &&!isNaN(tgtMg)) ?(tgtMg-curMg).toFixed(0):'?';
+
+  // Safe limits: Alk max 1 dKH per dose, Ca max 50 ppm, Mg max 100 ppm
+  const warnAlk = (!isNaN(curAlk)&&!isNaN(tgtAlk)) && (tgtAlk-curAlk)>1;
+  const warnCa  = (!isNaN(curCa) &&!isNaN(tgtCa))  && (tgtCa-curCa)>50;
+  const warnMg  = (!isNaN(curMg) &&!isNaN(tgtMg))  && (tgtMg-curMg)>100;
+  const warn = warnAlk||warnCa||warnMg;
+
+  const partD=cfg.partD||'Reef Energy';
+  document.getElementById('dt-results').innerHTML=`
+    <div class="dose-result-grid" style="margin-top:12px">
+      <div class="dose-result"><div class="dose-result-label">DSR KH+</div><div class="dose-result-val part-b">${gAlk<=0?'0.0':gAlk.toFixed(1)}</div><div class="dose-result-unit">grams</div><div class="dose-result-sub">Alk +${dAlk} dKH</div></div>
+      <div class="dose-result"><div class="dose-result-label">Foundation A+ (Ca)</div><div class="dose-result-val part-a">${fmtMl(mlA)}</div><div class="dose-result-unit">ml</div><div class="dose-result-sub">Ca +${dCa} ppm</div></div>
+      <div class="dose-result"><div class="dose-result-label">AF Mg Flakes</div><div class="dose-result-val part-c">${gMg<=0?'0.0':gMg.toFixed(1)}</div><div class="dose-result-unit">grams</div><div class="dose-result-sub">Mg +${dMg} ppm</div></div>
+      <div class="dose-result"><div class="dose-result-label">${partD}</div><div class="dose-result-val part-d">—</div><div class="dose-result-unit"></div><div class="dose-result-sub">Per manufacturer</div></div>
+    </div>
+    ${warn?`<div class="dose-warn">⚠️ Large adjustment — split across multiple days.${warnAlk?' Max 1 dKH per dose.':''}${warnCa?' Max 50 ppm Ca per dose.':''}${warnMg?' Max 100 ppm Mg per dose.':''}</div>`:''}
+    <div class="dose-info" style="margin-top:10px">Dissolve each powder in a cup of RO water first. Add Mg first, wait 30 min, then Ca, wait 30 min, then Alk. Retest after 24h.</div>`;
+}
+
+// ── Daily Maintenance ─────────────────────────────────────────────────────────
+function calcDailyDose() {
+  const cfg=getCfg();
+  const V=cfg.volume, awcFrac=cfg.awc/100;
+  const tgtAlk=parseDecimal(document.getElementById('mn-tgt-alk').value)||9.0;
+  const tgtCa =parseDecimal(document.getElementById('mn-tgt-ca').value)||420;
+  const tgtMg =parseDecimal(document.getElementById('mn-tgt-mg').value)||1280;
+
+  const alk=consumptionPerDay('alk',cfg.saltAlk);
+  const ca =consumptionPerDay('ca', cfg.saltCa);
+  const mg =consumptionPerDay('mg', cfg.saltMg);
+
+  function rowHTML(label,data,saltVal,tgt,factor,colorClass,unit) {
+    if(!data) return `<div class="consumption-row">
+      <div class="consumption-label">${label}</div>
+      <div class="consumption-val" style="color:var(--text2)">Need more readings</div></div>`;
+    const awcAtTgt=(saltVal-tgt)*awcFrac; // AWC effect when at target
+    // If AWC positive at target → helps, need less dose
+    // Net daily dose need = coral consumption - awc_at_target (if awcAtTgt positive, it reduces what we need)
+    const netNeed=Math.max(0, data.coralConsumption - awcAtTgt);
+    const mlDay=netNeed*V/factor;
+    const mlHour=mlDay/24;
+    const awcDir=awcAtTgt>=0?'+':'';
+    return`<div class="consumption-row">
+      <div>
+        <div class="consumption-label" style="font-weight:700;color:var(--text)">${label}</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:2px">
+          Coral use: ${data.coralConsumption.toFixed(3)} ${unit}/day ·
+          AWC at target: <span style="color:${awcAtTgt<0?'var(--yellow)':'var(--green)'}">${awcDir}${awcAtTgt.toFixed(3)}</span>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="consumption-val ${colorClass}">${mlDay<=0?'0.0':mlDay.toFixed(2)} ml/day</div>
+        <div style="font-size:10px;color:var(--text2)">${mlHour<=0?'0.00':mlHour.toFixed(3)} ml/hr</div>
+      </div>
+    </div>`;
+  }
+
+  const partD=cfg.partD||'Reef Energy';
+  document.getElementById('mn-results').innerHTML=`
+    <div style="margin-top:14px">
+      ${rowHTML('Foundation A+ (Ca)',ca,cfg.saltCa,tgtCa,RS.A,'part-a','ppm')}
+      ${rowHTML('Foundation B+ (Alk)',alk,cfg.saltAlk,tgtAlk,RS.B,'part-b','dKH')}
+      ${rowHTML('Foundation C (Mg)',mg,cfg.saltMg,tgtMg,RS.C,'part-c','ppm')}
+      <div class="consumption-row">
+        <div class="consumption-label">${partD} (Part D)</div>
+        <div class="consumption-val part-d">Per label</div>
+      </div>
+    </div>
+    <div class="dose-info" style="margin-top:12px">
+      <strong>Red Sea Doser 4 tip:</strong> Enter ml/day ÷ 24 = ml/hour into each channel.
+      Spread doses evenly through 24h for stable parameters.<br><br>
+      AWC at target = how much your daily water change adds/removes when tank is at your target.
+      A <strong style="color:var(--yellow)">negative value</strong> means AWC fights your dosing — you must dose extra to compensate.
+    </div>`;
+}
+
+// ── AWC Drift ─────────────────────────────────────────────────────────────────
+function calcAWCDrift() {
+  const cfg=getCfg();
+  const records=loadRecords(), latest=records.length?records[records.length-1]:null;
+  if(!latest){document.getElementById('awc-results').innerHTML='<div class="dose-warn">No readings logged yet.</div>';return;}
+  const awcFrac=cfg.awc/100;
+  const params=[
+    {key:'alk',label:'Alk',unit:'dKH',salt:cfg.saltAlk,decimals:2},
+    {key:'ca', label:'Ca', unit:'ppm',salt:cfg.saltCa, decimals:0},
+    {key:'mg', label:'Mg', unit:'ppm',salt:cfg.saltMg, decimals:0},
+  ];
+
+  function project(current,salt,days){
+    // Each day: val = val + (salt - val) * awcFrac
+    // After n days: val_n = salt + (current - salt) * (1 - awcFrac)^n
+    return salt + (current - salt) * Math.pow(1 - awcFrac, days);
+  }
+
+  const rows=params.map(p=>{
+    const cur=latest[p.key];
+    if(cur===null||cur===undefined) return`<tr><td style="padding:6px 8px;color:var(--text2)">${p.label}</td><td colspan="3" style="padding:6px 8px;color:var(--text2);font-size:11px">No data</td></tr>`;
+    const v7=project(cur,p.salt,7), v14=project(cur,p.salt,14), v30=project(cur,p.salt,30);
+    const fmt=v=>v.toFixed(p.decimals);
+    const dir=(v)=>v>cur?'up':v<cur?'down':'neutral';
+    return`<tr>
+      <td style="padding:6px 8px;font-size:12px;font-weight:600;color:var(--text)">${p.label}</td>
+      <td style="padding:6px 8px;text-align:center"><div style="font-size:12px;color:var(--text2)">${cur}</div><div style="font-size:9px;color:var(--text2)">now</div></td>
+      <td style="padding:6px 8px;text-align:center"><div style="font-size:13px;font-weight:700;color:${v7>cur?'var(--green)':'var(--yellow)'}">${fmt(v7)}</div><div style="font-size:9px;color:var(--text2)">7d</div></td>
+      <td style="padding:6px 8px;text-align:center"><div style="font-size:13px;font-weight:700;color:${v14>cur?'var(--green)':'var(--yellow)'}">${fmt(v14)}</div><div style="font-size:9px;color:var(--text2)">14d</div></td>
+      <td style="padding:6px 8px;text-align:center"><div style="font-size:13px;font-weight:700;color:${v30>cur?'var(--green)':'var(--yellow)'}">${fmt(v30)}</div><div style="font-size:9px;color:var(--text2)">30d</div></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('awc-results').innerHTML=`
+    <div style="margin-top:12px;overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-family:inherit">
+        <thead><tr style="border-bottom:1px solid var(--border)">
+          <th style="padding:6px 8px;text-align:left;font-size:10px;color:var(--text2);font-weight:600">Param</th>
+          <th style="padding:6px 8px;font-size:10px;color:var(--text2);font-weight:600">Now</th>
+          <th style="padding:6px 8px;font-size:10px;color:var(--text2);font-weight:600">7d</th>
+          <th style="padding:6px 8px;font-size:10px;color:var(--text2);font-weight:600">14d</th>
+          <th style="padding:6px 8px;font-size:10px;color:var(--text2);font-weight:600">30d</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div class="dose-info" style="margin-top:10px">
+      Projection assumes <strong>${cfg.awc}% AWC daily</strong>, no dosing, and salt at Ca ${cfg.saltCa} / Alk ${cfg.saltAlk} / Mg ${cfg.saltMg}.<br><br>
+      Your Mg will drift toward <strong>${cfg.saltMg} ppm</strong> — well below the 1250 ppm target. You'll need either Foundation C dosing or Mg correction in your salt mix to maintain levels.
+    </div>`;
+}
+
+// ── Mg Salt Mix Correction ────────────────────────────────────────────────────
+// MgCl2·6H2O: Mg fraction = 24.305 / (24.305 + 2×35.453 + 6×18.015) = 24.305/203.301 = 11.956%
+// 1g in 1L → 119.56 ppm Mg
+const MGCL2_FACTOR = 119.56; // ppm Mg per g/L of MgCl2·6H2O
+
+function calcMgCorrection() {
+  const batch=parseDecimal(document.getElementById('mg-batch').value)||5.7;
+  const saltMg=parseDecimal(document.getElementById('mg-salt-val').value)||1280;
+  const targetMg=parseDecimal(document.getElementById('mg-target').value)||1280;
+  const deficit=targetMg-saltMg;
+  if(deficit<=0){
+    document.getElementById('mg-results').innerHTML='<div class="dose-info" style="margin-top:10px">Salt Mg is already at or above target — no correction needed.</div>';
+    return;
+  }
+  // g needed = deficit * batch / MGCL2_FACTOR
+  const grams=(deficit*batch)/MGCL2_FACTOR;
+  const gramsPer10L=(deficit*10)/MGCL2_FACTOR;
+  document.getElementById('mg-results').innerHTML=`
+    <div class="dose-result-grid" style="margin-top:12px">
+      <div class="dose-result"><div class="dose-result-label">Add to ${batch}L batch</div><div class="dose-result-val part-c">${grams.toFixed(2)}</div><div class="dose-result-unit">g AF Mg Flakes</div><div class="dose-result-sub">Mg deficit: ${deficit} ppm</div></div>
+      <div class="dose-result"><div class="dose-result-label">Per 10L mixed</div><div class="dose-result-val part-c">${gramsPer10L.toFixed(2)}</div><div class="dose-result-unit">g AF Mg Flakes</div><div class="dose-result-sub">Scale to any batch</div></div>
+    </div>
+    <div class="dose-info" style="margin-top:10px">
+      Dissolve in a small cup of RO water first, then add to the saltwater bucket before mixing.
+      This raises the Mg of your prepared saltwater from <strong>${saltMg}</strong> to <strong>${targetMg} ppm</strong> before it enters the tank via AWC.
+    </div>`;
+}
+
+// ─── Google Sheets Sync ───────────────────────────────────────────────────────
+function loadGsUrl() {
+  try { return localStorage.getItem('reef_gs_url')||''; } catch { return ''; }
+}
+function saveGsUrl() {
+  const url=(document.getElementById('cfg-gs-url').value||'').trim();
+  try { localStorage.setItem('reef_gs_url',url); } catch {}
+  setSyncDetail(url?'URL saved. Tap Sync Now to pull data.':'URL cleared.');
+}
+function setSyncStatus(state) {
+  const el=document.getElementById('sync-status'); if(!el) return;
+  if(state==='syncing') el.innerHTML='<span style="color:var(--text2)">☁️ syncing…</span>';
+  else if(state==='ok')  el.innerHTML='<span style="color:var(--green)">☁️ synced</span>';
+  else if(state==='err') el.innerHTML='<span style="color:var(--red)">☁️ sync failed</span>';
+  else el.innerHTML='';
+}
+function setSyncDetail(msg) {
+  const el=document.getElementById('sync-detail'); if(el) el.textContent=msg;
+}
+
+async function syncFromSheets() {
+  const url=loadGsUrl(); if(!url){setSyncDetail('No URL set — add it above.');return;}
+  setSyncStatus('syncing'); setSyncDetail('Fetching from Google Sheets…');
+  try {
+    const res=await fetch(url+'?action=read',{cache:'no-store'});
+    const remote=await res.json();
+    if(!Array.isArray(remote)) throw new Error('Unexpected response: '+JSON.stringify(remote).slice(0,80));
+    // Remote is source of truth; keep any local-only dates not yet in remote
+    const remoteDates=new Set(remote.map(r=>localDateKey(r.ts)));
+    const local=loadRecords();
+    const localOnly=local.filter(r=>!remoteDates.has(localDateKey(r.ts)));
+    const merged=[...remote,...localOnly].sort((a,b)=>new Date(a.ts)-new Date(b.ts));
+    saveRecords(merged);
+    renderDashboard(); renderHistory();
+    setSyncStatus('ok');
+    setSyncDetail(`Synced ${remote.length} record${remote.length!==1?'s':''} from Sheets.`);
+    setTimeout(()=>setSyncStatus(''),4000);
+  } catch(e) {
+    setSyncStatus('err');
+    setSyncDetail('Error: '+e.message);
+    setTimeout(()=>setSyncStatus(''),6000);
+  }
+}
+
+async function pushRecord(record) {
+  const url=loadGsUrl(); if(!url) return;
+  try {
+    const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(record))));
+    await fetch(url+'?action=save&r='+encoded,{mode:'no-cors'});
+  } catch {}
+}
+
+async function pushAllToSheets() {
+  const url=loadGsUrl(); if(!url){setSyncDetail('No URL set.');return;}
+  const records=loadRecords();
+  if(!records.length){setSyncDetail('No records to upload.');return;}
+  setSyncStatus('syncing'); setSyncDetail(`Uploading ${records.length} records…`);
+  let ok=0;
+  for(const r of records) {
+    try {
+      const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(r))));
+      await fetch(url+'?action=save&r='+encoded,{mode:'no-cors'});
+      ok++;
+    } catch {}
+  }
+  setSyncStatus('ok');
+  setSyncDetail(`Uploaded ${ok} records to Google Sheets.`);
+  setTimeout(()=>setSyncStatus(''),4000);
+}
+
+// ─── Page navigation ──────────────────────────────────────────────────────────
+function showToast(msg,type) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=type==='error'?'var(--red)':type==='warn'?'var(--yellow)':'var(--green)';
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200);
+}
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  document.getElementById(`nav-${name}`).classList.add('active');
+  if(name==='history') renderHistory();
+  if(name==='trends')  renderTrends();
+  if(name==='dashboard') renderDashboard();
+  if(name==='dose') initDoseToTarget();
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+// Restore saved config
+(function() {
+  const c=loadCfg();
+  if(c.volume) document.getElementById('cfg-volume').value=c.volume;
+  if(c.awc)    document.getElementById('cfg-awc').value=c.awc;
+  if(c.saltCa) document.getElementById('cfg-salt-ca').value=c.saltCa;
+  if(c.saltAlk)document.getElementById('cfg-salt-alk').value=c.saltAlk;
+  if(c.saltMg) document.getElementById('cfg-salt-mg').value=c.saltMg;
+  if(c.partD)  document.getElementById('cfg-part-d').value=c.partD;
+  const cfg=getCfg();
+  document.getElementById('awc-litres').textContent=
+    (cfg.volume*(cfg.awc/100)).toFixed(1)+'L';
+  // Restore GS URL
+  const gsUrl=loadGsUrl();
+  if(gsUrl) document.getElementById('cfg-gs-url').value=gsUrl;
+})();
+
+initLogForm();
+if(!loadRecords().length) {
+  saveRecords([...HISTORICAL_DATA].sort((a,b)=>new Date(a.ts)-new Date(b.ts)));
+}
+renderDashboard();
+// Auto-sync from Sheets on load if URL is configured
+if(loadGsUrl()) syncFromSheets();
+</script>
+</body>
+</html>
