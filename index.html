@@ -1445,6 +1445,7 @@ function markMaintDone(idx) {
   const tasks=loadMaint();
   tasks[idx].lastDone=localDateKey(new Date());
   saveMaint(tasks); renderMaint();
+  pushMaintTask(tasks[idx]);
   showToast(`${tasks[idx].name} done ✓`);
 }
 function saveMaintInterval(idx) {
@@ -1453,7 +1454,44 @@ function saveMaintInterval(idx) {
   if(!val||val<1){showToast('Enter a valid number of days','warn');return;}
   tasks[idx].intervalDays=val;
   saveMaint(tasks); renderMaint();
+  pushMaintTask(tasks[idx]);
   showToast('Interval updated ✓');
+}
+async function pushMaintTask(task) {
+  const url=loadGsUrl(); if(!url) return;
+  try {
+    const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(task))));
+    await fetch(url+'?action=save_maint&r='+encoded,{mode:'no-cors'});
+  } catch {}
+}
+async function syncMaintFromSheets() {
+  const url=loadGsUrl(); if(!url) return;
+  try {
+    const res=await fetch(url+'?action=read_maint');
+    if(!res.ok) return;
+    const remote=await res.json();
+    if(!Array.isArray(remote)||!remote.length) return;
+    const local=loadMaint();
+    const localById=Object.fromEntries(local.map(t=>[t.id,t]));
+    const remoteById=Object.fromEntries(remote.map(t=>[t.id,t]));
+    // Merge: for each known id, keep most-recent lastDone; local wins for intervalDays
+    const merged=local.map(t=>{
+      const r=remoteById[t.id]; if(!r) return t;
+      const localDate=t.lastDone?new Date(t.lastDone):null;
+      const remoteDate=r.lastDone?new Date(r.lastDone):null;
+      const bestLastDone=(localDate&&remoteDate)
+        ?(localDate>=remoteDate?t.lastDone:r.lastDone)
+        :(t.lastDone||r.lastDone);
+      return {...t, lastDone:bestLastDone};
+    });
+    // Add any tasks that exist in Sheets but not locally (e.g. added from another device)
+    for(const r of remote) {
+      if(!localById[r.id]) merged.push(r);
+    }
+    saveMaint(merged); renderMaint();
+    // Push any local-only tasks up to Sheets
+    for(const t of local) { if(!remoteById[t.id]) await pushMaintTask(t); }
+  } catch {}
 }
 
 // ─── Page navigation ──────────────────────────────────────────────────────────
@@ -1472,7 +1510,7 @@ function showPage(name) {
   if(name==='trends')  renderTrends();
   if(name==='dashboard') renderDashboard();
   if(name==='dose') initDoseToTarget();
-  if(name==='maint') renderMaint();
+  if(name==='maint') { renderMaint(); syncMaintFromSheets(); }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
