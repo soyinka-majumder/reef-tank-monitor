@@ -556,11 +556,11 @@ function loadCfg() {
 }
 function saveCfg() {
   const cfg = {
-    volume: parseFloat(document.getElementById('cfg-volume').value)||275,
-    awc:    parseFloat(document.getElementById('cfg-awc').value)||1.9,
-    saltCa: parseFloat(document.getElementById('cfg-salt-ca').value)||420,
-    saltAlk:parseFloat(document.getElementById('cfg-salt-alk').value)||8.3,
-    saltMg: parseFloat(document.getElementById('cfg-salt-mg').value)||1280,
+    volume: parseNum(document.getElementById('cfg-volume').value)||275,
+    awc:    parseNum(document.getElementById('cfg-awc').value)||1.9,
+    saltCa: parseNum(document.getElementById('cfg-salt-ca').value)||420,
+    saltAlk:parseNum(document.getElementById('cfg-salt-alk').value)||8.3,
+    saltMg: parseNum(document.getElementById('cfg-salt-mg').value)||1280,
     partD:  document.getElementById('cfg-part-d').value||'Reef Energy',
   };
   try { localStorage.setItem('reef_cfg',JSON.stringify(cfg)); } catch {}
@@ -606,6 +606,13 @@ function importHistorical() {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+// iOS fix: some locales show ',' as decimal separator. Normalise before parsing.
+// IMPORTANT: always use parseNum() for user-entered numeric values, never bare parseFloat().
+function parseNum(v) {
+  if(v===null||v===undefined||v==='') return null;
+  const n=parseFloat(String(v).replace(',','.'));
+  return isNaN(n)?null:n;
+}
 function getStatus(param,value) {
   if(value===null||value===undefined||value==='') return 'no-data';
   const v=parseFloat(value);
@@ -775,7 +782,7 @@ function saveLog() {
   let hasAny=false;
   PARAMS.forEach(p=>{
     const v=document.getElementById(`log-${p.key}`).value;
-    record[p.key]=v!==''?parseFloat(v):null; if(v!=='')hasAny=true;
+    record[p.key]=v!==''?parseNum(v):null; if(v!=='')hasAny=true;
   });
   record.notes=document.getElementById('log-notes').value.trim();
   if(!hasAny&&!record.notes){showToast('Enter a value or note','warn');return;}
@@ -850,7 +857,7 @@ function saveEdit() {
   // Fixed: noon UTC normalization
   const d=new Date(dt);
   const records=loadRecords(), record={ts:localDateKey(d)+'T12:00:00.000Z'};
-  PARAMS.forEach(p=>{const v=document.getElementById(`edit-${p.key}`).value; record[p.key]=v!==''?parseFloat(v):null;});
+  PARAMS.forEach(p=>{const v=document.getElementById(`edit-${p.key}`).value; record[p.key]=v!==''?parseNum(v):null;});
   record.notes=document.getElementById('edit-notes').value.trim();
   records[editIndex]=record; records.sort((a,b)=>new Date(a.ts)-new Date(b.ts));
   saveRecords(records); pushRecord(record); closeModal();
@@ -1153,22 +1160,22 @@ function initDoseToTarget() {
 }
 function calcDoseToTarget() {
   const cfg=getCfg();
-  const curAlk=parseFloat(document.getElementById('dt-cur-alk').value);
-  const tgtAlk=parseFloat(document.getElementById('dt-tgt-alk').value);
-  const curCa =parseFloat(document.getElementById('dt-cur-ca').value);
-  const tgtCa =parseFloat(document.getElementById('dt-tgt-ca').value);
-  const curMg =parseFloat(document.getElementById('dt-cur-mg').value);
-  const tgtMg =parseFloat(document.getElementById('dt-tgt-mg').value);
+  const curAlk=parseNum(document.getElementById('dt-cur-alk').value);
+  const tgtAlk=parseNum(document.getElementById('dt-tgt-alk').value);
+  const curCa =parseNum(document.getElementById('dt-cur-ca').value);
+  const tgtCa =parseNum(document.getElementById('dt-tgt-ca').value);
+  const curMg =parseNum(document.getElementById('dt-cur-mg').value);
+  const tgtMg =parseNum(document.getElementById('dt-tgt-mg').value);
   const V=cfg.volume;
-  const gAlk = (!isNaN(curAlk)&&!isNaN(tgtAlk)&&tgtAlk>curAlk) ? Math.max(0,(tgtAlk-curAlk)*V*DSR_KH_FACTOR/100) : 0;
-  const mlA  = (!isNaN(curCa) &&!isNaN(tgtCa) &&tgtCa>curCa)   ? Math.max(0,(tgtCa-curCa)*V/RS.A)              : 0;
-  const gMg  = (!isNaN(curMg) &&!isNaN(tgtMg) &&tgtMg>curMg)   ? Math.max(0,(tgtMg-curMg)*V/MGFLAKE_FACTOR)    : 0;
-  const dAlk = (!isNaN(curAlk)&&!isNaN(tgtAlk))?(tgtAlk-curAlk).toFixed(1):'?';
-  const dCa  = (!isNaN(curCa) &&!isNaN(tgtCa)) ?(tgtCa-curCa).toFixed(0):'?';
-  const dMg  = (!isNaN(curMg) &&!isNaN(tgtMg)) ?(tgtMg-curMg).toFixed(0):'?';
-  const warnAlk = (!isNaN(curAlk)&&!isNaN(tgtAlk)) && (tgtAlk-curAlk)>1;
-  const warnCa  = (!isNaN(curCa) &&!isNaN(tgtCa))  && (tgtCa-curCa)>50;
-  const warnMg  = (!isNaN(curMg) &&!isNaN(tgtMg))  && (tgtMg-curMg)>100;
+  const gAlk = (curAlk!==null&&tgtAlk!==null&&tgtAlk>curAlk) ? Math.max(0,(tgtAlk-curAlk)*V*DSR_KH_FACTOR/100) : 0;
+  const mlA  = (curCa !==null&&tgtCa !==null&&tgtCa>curCa)   ? Math.max(0,(tgtCa-curCa)*V/RS.A)              : 0;
+  const gMg  = (curMg !==null&&tgtMg !==null&&tgtMg>curMg)   ? Math.max(0,(tgtMg-curMg)*V/MGFLAKE_FACTOR)    : 0;
+  const dAlk = (curAlk!==null&&tgtAlk!==null)?(tgtAlk-curAlk).toFixed(1):'?';
+  const dCa  = (curCa !==null&&tgtCa !==null)?(tgtCa-curCa).toFixed(0):'?';
+  const dMg  = (curMg !==null&&tgtMg !==null)?(tgtMg-curMg).toFixed(0):'?';
+  const warnAlk = (curAlk!==null&&tgtAlk!==null) && (tgtAlk-curAlk)>1;
+  const warnCa  = (curCa !==null&&tgtCa !==null) && (tgtCa-curCa)>50;
+  const warnMg  = (curMg !==null&&tgtMg !==null) && (tgtMg-curMg)>100;
   const warn = warnAlk||warnCa||warnMg;
   const partD=cfg.partD||'Reef Energy';
   document.getElementById('dt-results').innerHTML=`
@@ -1186,9 +1193,9 @@ function calcDoseToTarget() {
 function calcDailyDose() {
   const cfg=getCfg();
   const V=cfg.volume, awcFrac=cfg.awc/100;
-  const tgtAlk=parseFloat(document.getElementById('mn-tgt-alk').value)||9.0;
-  const tgtCa =parseFloat(document.getElementById('mn-tgt-ca').value)||420;
-  const tgtMg =parseFloat(document.getElementById('mn-tgt-mg').value)||1280;
+  const tgtAlk=parseNum(document.getElementById('mn-tgt-alk').value)||9.0;
+  const tgtCa =parseNum(document.getElementById('mn-tgt-ca').value)||420;
+  const tgtMg =parseNum(document.getElementById('mn-tgt-mg').value)||1280;
   const alk=consumptionPerDay('alk',cfg.saltAlk);
   const ca =consumptionPerDay('ca', cfg.saltCa);
   const mg =consumptionPerDay('mg', cfg.saltMg);
@@ -1277,9 +1284,9 @@ function calcAWCDrift() {
 
 // ── Mg Salt Mix Correction ────────────────────────────────────────────────────
 function calcMgCorrection() {
-  const batch=parseFloat(document.getElementById('mg-batch').value)||5.7;
-  const saltMg=parseFloat(document.getElementById('mg-salt-val').value)||1280;
-  const targetMg=parseFloat(document.getElementById('mg-target').value)||1280;
+  const batch=parseNum(document.getElementById('mg-batch').value)||5.7;
+  const saltMg=parseNum(document.getElementById('mg-salt-val').value)||1280;
+  const targetMg=parseNum(document.getElementById('mg-target').value)||1280;
   const deficit=targetMg-saltMg;
   if(deficit<=0){
     document.getElementById('mg-results').innerHTML='<div class="dose-info" style="margin-top:10px">Salt Mg is already at or above target — no correction needed.</div>';
@@ -1325,36 +1332,46 @@ async function syncFromSheets() {
     const localByDate=new Map(local.map(r=>[localDateKey(r.ts),r]));
     const remoteDates=new Set(remote.map(r=>localDateKey(r.ts)));
 
-    // Merge: remote is base for param values, but if local has MORE note content
-    // (e.g. a note added on this device not yet pushed), keep the local note
-    // and push the merged record back to Sheets.
+    // Merge strategy: LOCAL wins for any param the user entered locally (non-null).
+    // Remote only fills in params that are null locally (e.g. data from another device).
+    // For notes: longer string wins (in case note was added locally but not yet pushed).
+    // This prevents the auto-sync on page load from overwriting values just entered.
     const toRepush=[];
     const mergedRemote=remote.map(r=>{
       const dk=localDateKey(r.ts);
       const loc=localByDate.get(dk);
-      if(loc){
-        const localNote=(loc.notes||'').trim();
-        const remoteNote=(r.notes||'').trim();
-        if(localNote.length>remoteNote.length){
-          const merged={...r, notes:localNote};
-          toRepush.push(merged); // push merged note back to Sheets
-          return merged;
-        }
-      }
-      return r;
+      if(!loc) return r;
+
+      // Merge params: prefer local non-null values
+      const merged={...r};
+      PARAMS.forEach(p=>{
+        if(loc[p.key]!==null&&loc[p.key]!==undefined) merged[p.key]=loc[p.key];
+      });
+
+      // Merge notes: prefer longer string
+      const localNote=(loc.notes||'').trim();
+      const remoteNote=(r.notes||'').trim();
+      merged.notes=localNote.length>=remoteNote.length?localNote:remoteNote;
+
+      // Push back if merged differs from what Sheets has
+      const differs=PARAMS.some(p=>merged[p.key]!==r[p.key])||merged.notes!==r.notes;
+      if(differs) toRepush.push(merged);
+      return merged;
     });
 
-    // Local-only records (dates not in Sheets at all)
+    // Local-only records (dates not in Sheets at all) — keep locally + push up
     const localOnly=local.filter(r=>!remoteDates.has(localDateKey(r.ts)));
     const merged=[...mergedRemote,...localOnly].sort((a,b)=>new Date(a.ts)-new Date(b.ts));
     saveRecords(merged);
     renderDashboard(); renderHistory();
 
-    // Push back any records where we preserved local notes
+    // Push merged records and local-only records up to Sheets
     for(const r of toRepush) await pushRecord(r);
+    for(const r of localOnly) await pushRecord(r);
 
+    const pushed=toRepush.length+localOnly.length;
     setSyncStatus('ok');
-    setSyncDetail(`Synced ${remote.length} record${remote.length!==1?'s':''}${toRepush.length?' · pushed '+toRepush.length+' local note(s)':''}.`);
+    setSyncDetail(`Synced ${remote.length} record${remote.length!==1?'s':''}${pushed?' · pushed '+pushed+' local update(s)':''}.`);
     setTimeout(()=>setSyncStatus(''),4000);
   } catch(e) {
     setSyncStatus('err');
@@ -1527,6 +1544,16 @@ function showPage(name) {
   const gsUrl=loadGsUrl();
   if(gsUrl) document.getElementById('cfg-gs-url').value=gsUrl;
 })();
+
+// iOS decimal normaliser: replace commas with periods on all decimal inputs as user types
+document.addEventListener('input', function(e) {
+  const el = e.target;
+  if (el.getAttribute('inputmode') === 'decimal' && el.value.includes(',')) {
+    const pos = el.selectionStart;
+    el.value = el.value.replace(',', '.');
+    try { el.setSelectionRange(pos, pos); } catch {}
+  }
+});
 
 initLogForm();
 if(!loadRecords().length) {
