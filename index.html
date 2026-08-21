@@ -260,7 +260,7 @@
   .dash-maint-due.warn{color:var(--yellow);font-weight:600;}
   .dash-maint-due.bad{color:var(--red);font-weight:600;}
   /* Nav badge */
-  #nav-maint{position:relative;}
+  #nav-settings{position:relative;}
   .nav-badge{position:absolute;top:4px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid var(--bg);display:none;}
   .nav-badge.show{display:block;}
 </style>
@@ -325,150 +325,124 @@
 
 <!-- HISTORY -->
 <div id="page-history" class="page">
-  <div class="filter-row">
-    <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
-    <button class="filter-btn" data-filter="week" onclick="setFilter('week')">This Week</button>
-    <button class="filter-btn" data-filter="month" onclick="setFilter('month')">This Month</button>
+  <div class="tab-row">
+    <button class="tab-btn active" id="hist-tab-records" onclick="showHistTab('records')">Records</button>
+    <button class="tab-btn" id="hist-tab-trends" onclick="showHistTab('trends')">Trends</button>
   </div>
-  <div class="history-list" id="history-list"></div>
-</div>
-
-<!-- TRENDS -->
-<div id="page-trends" class="page">
-  <div id="trends-content"></div>
+  <div id="hist-records" class="dose-sub-page active">
+    <div class="filter-row">
+      <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+      <button class="filter-btn" data-filter="week" onclick="setFilter('week')">This Week</button>
+      <button class="filter-btn" data-filter="month" onclick="setFilter('month')">This Month</button>
+    </div>
+    <div class="history-list" id="history-list"></div>
+  </div>
+  <div id="hist-trends" class="dose-sub-page">
+    <div id="trends-content"></div>
+  </div>
 </div>
 
 <!-- DOSE -->
 <div id="page-dose" class="page">
-  <div class="tab-row">
-    <button class="tab-btn active" onclick="showDoseTab('target')">Dose to Target</button>
-    <button class="tab-btn" onclick="showDoseTab('maintain')">Daily Dose</button>
-    <button class="tab-btn" onclick="showDoseTab('awc')">AWC Impact</button>
-    <button class="tab-btn" onclick="showDoseTab('mg')">Mg Mix</button>
+
+  <!-- SECTION 1: ALKALINITY — REEFDOSE 4 -->
+  <div class="dose-card" style="border-color:rgba(0,119,200,0.35)">
+    <div class="dose-card-title">💧 Alkalinity — Reefdose 4 (DSR KH+)</div>
+    <div class="dose-info" style="margin-top:0;margin-bottom:12px">
+      Log Alk readings every few days. Once you have 5+ readings, run the analyser — it gives you the stable ml/day to set on your Reefdose 4. Set it once and leave it.
+    </div>
+    <div class="dose-row">
+      <div class="form-group"><div class="dose-label">Target Alk (dKH)</div><input class="dose-input" id="mn-tgt-alk" type="text" pattern="[0-9.]*" value="9.0" inputmode="decimal"></div>
+      <div class="form-group"><div class="dose-label">Mix: 90g DSR KH+ / 1L</div><input class="dose-input" type="text" value="9 g / 100 ml" style="background:transparent;border-color:var(--border);color:var(--text2);font-size:12px" readonly></div>
+    </div>
+    <button class="btn-calc" onclick="calcAlkAnalysis()">📊 Run Analyser</button>
+    <div id="alk-analysis-results"></div>
+    <!-- hidden IDs used by calcDailyDose fallback -->
+    <input type="hidden" id="mn-tgt-ca" value="420">
+    <input type="hidden" id="mn-tgt-mg" value="1280">
+    <input type="hidden" id="mn-results">
   </div>
 
-  <!-- DOSE TO TARGET -->
-  <div id="dose-target" class="dose-sub-page active">
-    <div class="dose-card">
-      <div class="dose-card-title">⚗️ Tank Profile</div>
-      <div class="dose-row">
-        <div class="form-group"><div class="dose-label">Water Vol (L)</div><input class="dose-input" id="cfg-volume" type="text" pattern="[0-9.]*" value="275" inputmode="decimal" onchange="saveCfg()"></div>
-        <div class="form-group"><div class="dose-label">Daily AWC %</div><input class="dose-input" id="cfg-awc" type="text" pattern="[0-9.]*" value="1.9" inputmode="decimal" onchange="saveCfg()"></div>
-      </div>
-      <div class="dose-row">
-        <div class="form-group"><div class="dose-label">Salt Ca (ppm)</div><input class="dose-input" id="cfg-salt-ca" type="text" pattern="[0-9.]*" value="420" inputmode="decimal" onchange="saveCfg()"></div>
-        <div class="form-group"><div class="dose-label">Salt Alk (dKH)</div><input class="dose-input" id="cfg-salt-alk" type="text" pattern="[0-9.]*" value="8.3" inputmode="decimal" onchange="saveCfg()"></div>
-      </div>
-      <div class="dose-row">
-        <div class="form-group"><div class="dose-label">Salt Mg (ppm)</div><input class="dose-input" id="cfg-salt-mg" type="text" pattern="[0-9.]*" value="1280" inputmode="decimal" onchange="saveCfg()"></div>
-        <div class="form-group"><div class="dose-label">4th Part label</div><input class="dose-input" id="cfg-part-d" type="text" value="Reef Energy" style="font-size:13px" onchange="saveCfg()"></div>
-      </div>
-      <div class="dose-info" style="margin-top:4px">Your AWC removes <strong id="awc-litres">5.7L</strong>/day. Salt Mg is low — AWC is actively pulling Mg down unless you dose.</div>
+  <!-- SECTION 2: MAGNESIUM — AWC BATCH -->
+  <div class="dose-card" style="border-color:rgba(0,168,107,0.35)">
+    <div class="dose-card-title">🧂 Magnesium — AWC batch (AF Mg Flakes)</div>
+    <div class="dose-info" style="margin-top:0;margin-bottom:12px">
+      Your salt mix is low in Mg. Add Aquaforest Mg Flakes to every water change bucket to keep Mg stable.
     </div>
-
-    <div class="dose-card">
-      <div class="dose-card-title">☁️ Cloud Sync (Google Sheets)</div>
-      <div class="dose-info" style="margin-top:0;margin-bottom:10px">Paste your Apps Script Web App URL here to sync data across all devices.</div>
-      <div class="form-group" style="margin-bottom:10px">
-        <div class="dose-label">Apps Script URL</div>
-        <input class="dose-input" id="cfg-gs-url" type="url" placeholder="https://script.google.com/macros/s/..." style="font-size:12px" onchange="saveGsUrl()">
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn-calc" onclick="syncFromSheets()" style="flex:1">↻ Sync Now</button>
-        <button class="btn-calc" onclick="pushAllToSheets()" style="flex:1;background:rgba(0,168,107,0.1);border-color:rgba(0,168,107,0.3);color:var(--green)">⬆ Upload All</button>
-      </div>
-      <div id="sync-detail" style="font-size:11px;color:var(--text2);margin-top:8px;min-height:16px"></div>
+    <div class="dose-row">
+      <div class="form-group"><div class="dose-label">Batch size (L)</div><input class="dose-input" id="mg-batch" type="text" pattern="[0-9.]*" value="5.7" inputmode="decimal"></div>
+      <div class="form-group"><div class="dose-label">Salt Mg ppm (unmixed)</div><input class="dose-input" id="mg-salt-val" type="text" pattern="[0-9.]*" value="1111" inputmode="decimal"></div>
     </div>
-
-    <div class="dose-card">
-      <div class="dose-card-title">🎯 Dose to Reach Target</div>
-      <div class="dose-info" style="margin-top:0;margin-bottom:12px">Current values auto-filled from latest log. Adjust targets as needed.<br><span style="font-size:11px">Alk → DSR KH+ (g) · Ca → Foundation A+ (ml) · Mg → AF Mg Flakes (g)</span></div>
-      <div class="dose-row">
-        <div class="form-group"><div class="dose-label">Current Alk (dKH)</div><input class="dose-input" id="dt-cur-alk" type="text" pattern="[0-9.]*" inputmode="decimal" placeholder="—"></div>
-        <div class="form-group"><div class="dose-label">Target Alk (dKH)</div><input class="dose-input" id="dt-tgt-alk" type="text" pattern="[0-9.]*" inputmode="decimal" value="9.0"></div>
-      </div>
-      <div class="dose-row">
-        <div class="form-group"><div class="dose-label">Current Ca (ppm)</div><input class="dose-input" id="dt-cur-ca" type="text" pattern="[0-9.]*" inputmode="decimal" placeholder="—"></div>
-        <div class="form-group"><div class="dose-label">Target Ca (ppm)</div><input class="dose-input" id="dt-tgt-ca" type="text" pattern="[0-9.]*" inputmode="decimal" value="420"></div>
-      </div>
-      <div class="dose-row">
-        <div class="form-group"><div class="dose-label">Current Mg (ppm)</div><input class="dose-input" id="dt-cur-mg" type="text" pattern="[0-9.]*" inputmode="decimal" placeholder="—"></div>
-        <div class="form-group"><div class="dose-label">Target Mg (ppm)</div><input class="dose-input" id="dt-tgt-mg" type="text" pattern="[0-9.]*" inputmode="decimal" value="1280"></div>
-      </div>
-      <button class="btn-calc" onclick="calcDoseToTarget()">Calculate Dose</button>
-      <div id="dt-results"></div>
+    <div class="dose-row">
+      <div class="form-group"><div class="dose-label">Target Mg (ppm)</div><input class="dose-input" id="mg-target" type="text" pattern="[0-9.]*" value="1280" inputmode="decimal"></div>
+      <div class="form-group"></div>
     </div>
+    <button class="btn-calc" onclick="calcMgCorrection()">Calculate per batch</button>
+    <div id="mg-results"></div>
   </div>
 
-  <!-- DAILY MAINTENANCE -->
-  <div id="dose-maintain" class="dose-sub-page">
-    <div class="dose-card">
-      <div class="dose-card-title">📅 Daily Doser Schedule</div>
-      <div class="dose-info" style="margin-top:0;margin-bottom:12px">
-        Auto-calculates from your last 2 logged readings that contain each parameter. Your <strong>1.9% AWC</strong> is factored in.
-      </div>
-      <div class="dose-row">
-        <div class="form-group"><div class="dose-label">Target Alk (dKH)</div><input class="dose-input" id="mn-tgt-alk" type="text" pattern="[0-9.]*" value="9.0" inputmode="decimal"></div>
-        <div class="form-group"><div class="dose-label">Target Ca (ppm)</div><input class="dose-input" id="mn-tgt-ca" type="text" pattern="[0-9.]*" value="420" inputmode="decimal"></div>
-      </div>
-      <div class="dose-row">
-        <div class="form-group"><div class="dose-label">Target Mg (ppm)</div><input class="dose-input" id="mn-tgt-mg" type="text" pattern="[0-9.]*" value="1280" inputmode="decimal"></div>
-        <div class="form-group"></div>
-      </div>
-      <button class="btn-calc" onclick="calcDailyDose()">Calculate Daily Dose</button>
-      <div id="mn-results"></div>
+  <!-- SECTION 3: MANUAL ONE-OFF CORRECTION -->
+  <div class="dose-card">
+    <div class="dose-card-title">🎯 Manual correction (if reading drifts)</div>
+    <div class="dose-info" style="margin-top:0;margin-bottom:12px">
+      Only use this if a reading has drifted and you need a one-off top-up. Alk → DSR KH+ · Mg → AF Mg Flakes · Ca → Foundation A+
     </div>
+    <div class="dose-row">
+      <div class="form-group"><div class="dose-label">Current Alk (dKH)</div><input class="dose-input" id="dt-cur-alk" type="text" pattern="[0-9.]*" inputmode="decimal" placeholder="—"></div>
+      <div class="form-group"><div class="dose-label">Target Alk (dKH)</div><input class="dose-input" id="dt-tgt-alk" type="text" pattern="[0-9.]*" inputmode="decimal" value="9.0"></div>
+    </div>
+    <div class="dose-row">
+      <div class="form-group"><div class="dose-label">Current Mg (ppm)</div><input class="dose-input" id="dt-cur-mg" type="text" pattern="[0-9.]*" inputmode="decimal" placeholder="—"></div>
+      <div class="form-group"><div class="dose-label">Target Mg (ppm)</div><input class="dose-input" id="dt-tgt-mg" type="text" pattern="[0-9.]*" inputmode="decimal" value="1280"></div>
+    </div>
+    <div class="dose-row">
+      <div class="form-group"><div class="dose-label">Current Ca (ppm)</div><input class="dose-input" id="dt-cur-ca" type="text" pattern="[0-9.]*" inputmode="decimal" placeholder="—"></div>
+      <div class="form-group"><div class="dose-label">Target Ca (ppm)</div><input class="dose-input" id="dt-tgt-ca" type="text" pattern="[0-9.]*" inputmode="decimal" value="420"></div>
+    </div>
+    <button class="btn-calc" onclick="calcDoseToTarget()">Calculate one-off dose</button>
+    <div id="dt-results"></div>
   </div>
 
-  <!-- AWC IMPACT -->
-  <div id="dose-awc" class="dose-sub-page">
-    <div class="dose-card">
-      <div class="dose-card-title">🔄 AWC Parameter Drift</div>
-      <div class="dose-info" style="margin-top:0;margin-bottom:12px">
-        With 1.9%/day AWC, parameters are being pulled toward your salt mix values. Shows where each will be in 7, 14, and 30 days with <strong>no dosing</strong>.
-      </div>
-      <button class="btn-calc" onclick="calcAWCDrift()">Show Projection</button>
-      <div id="awc-results"></div>
-    </div>
-  </div>
-
-  <!-- MG SALT MIX CORRECTION -->
-  <div id="dose-mg" class="dose-sub-page">
-    <div class="dose-card">
-      <div class="dose-card-title">🧂 Mg Salt Mix Correction</div>
-      <div class="dose-info" style="margin-top:0;margin-bottom:12px">
-        Your "Basic Reef" salt measures <strong>1111 ppm Mg</strong> unmixed. Add <strong>Aquaforest Mg Flakes</strong> to each AWC batch to hit target.
-      </div>
-      <div class="dose-row">
-        <div class="form-group"><div class="dose-label">Batch Size (L)</div><input class="dose-input" id="mg-batch" type="text" pattern="[0-9.]*" value="5.7" inputmode="decimal"></div>
-        <div class="form-group"><div class="dose-label">Base Salt Mg (ppm)</div><input class="dose-input" id="mg-salt-val" type="text" pattern="[0-9.]*" value="1111" inputmode="decimal"></div>
-      </div>
-      <div class="dose-row">
-        <div class="form-group"><div class="dose-label">Target Mg (ppm)</div><input class="dose-input" id="mg-target" type="text" pattern="[0-9.]*" value="1280" inputmode="decimal"></div>
-        <div class="form-group"></div>
-      </div>
-      <button class="btn-calc" onclick="calcMgCorrection()">Calculate</button>
-      <div id="mg-results"></div>
-    </div>
-    <div class="dose-card">
-      <div class="dose-card-title">📐 Mg Supplement Reference</div>
-      <div class="dose-info" style="margin-top:0">
-        <strong>Aquaforest Mg Flakes (MgCl₂·6H₂O):</strong><br>
-        1g per 1L → raises Mg by <strong>~119.6 ppm</strong><br>
-        1g per 100L → raises Mg by <strong>~1.2 ppm</strong><br><br>
-        <strong>MgSO₄·7H₂O (Epsom salt):</strong><br>
-        1g per 100L → raises Mg by <strong>~0.99 ppm</strong><br><br>
-        <strong>Red Sea Foundation C:</strong><br>
-        1ml per 100L → raises Mg by <strong>~11 ppm</strong>
-      </div>
-    </div>
-  </div>
 </div>
 
-<!-- MAINTENANCE -->
-<div id="page-maint" class="page">
+<!-- SETTINGS -->
+<div id="page-settings" class="page">
+
+  <div class="dose-card">
+    <div class="dose-card-title">⚗️ Tank Setup</div>
+    <div class="dose-row">
+      <div class="form-group"><div class="dose-label">Volume (L)</div><input class="dose-input" id="cfg-volume" type="text" pattern="[0-9.]*" value="300" inputmode="decimal" onchange="saveCfg()"></div>
+      <div class="form-group"><div class="dose-label">Daily AWC %</div><input class="dose-input" id="cfg-awc" type="text" pattern="[0-9.]*" value="1.9" inputmode="decimal" onchange="saveCfg()"></div>
+    </div>
+    <div class="dose-row">
+      <div class="form-group"><div class="dose-label">Salt Alk (dKH)</div><input class="dose-input" id="cfg-salt-alk" type="text" pattern="[0-9.]*" value="8.3" inputmode="decimal" onchange="saveCfg()"></div>
+      <div class="form-group"><div class="dose-label">Salt Mg (ppm)</div><input class="dose-input" id="cfg-salt-mg" type="text" pattern="[0-9.]*" value="1280" inputmode="decimal" onchange="saveCfg()"></div>
+    </div>
+    <div class="dose-row">
+      <div class="form-group"><div class="dose-label">Salt Ca (ppm)</div><input class="dose-input" id="cfg-salt-ca" type="text" pattern="[0-9.]*" value="420" inputmode="decimal" onchange="saveCfg()"></div>
+      <div class="form-group"></div>
+    </div>
+    <input type="hidden" id="cfg-part-d" value="Reef Energy">
+    <div class="dose-info" style="margin-top:4px">AWC removes <strong id="awc-litres">5.7L</strong>/day.</div>
+  </div>
+
+  <div class="dose-card">
+    <div class="dose-card-title">☁️ Cloud Sync (Google Sheets)</div>
+    <div class="dose-info" style="margin-top:0;margin-bottom:10px">Syncs data across all your devices automatically.</div>
+    <div class="form-group" style="margin-bottom:10px">
+      <div class="dose-label">Apps Script URL</div>
+      <input class="dose-input" id="cfg-gs-url" type="url" placeholder="https://script.google.com/macros/s/..." style="font-size:12px" onchange="saveGsUrl()">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-calc" onclick="syncFromSheets()" style="flex:1">↻ Sync Now</button>
+      <button class="btn-calc" onclick="pushAllToSheets()" style="flex:1;background:rgba(0,168,107,0.1);border-color:rgba(0,168,107,0.3);color:var(--green)">⬆ Upload All</button>
+    </div>
+    <div id="sync-detail" style="font-size:11px;color:var(--text2);margin-top:8px;min-height:16px"></div>
+  </div>
+
   <div class="section-title" style="margin-bottom:14px">🧹 Maintenance Tracker</div>
   <div id="maint-list"></div>
+
 </div>
 
 <!-- Nav -->
@@ -485,17 +459,13 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4M3 16v-5h5"/></svg>
     History
   </button>
-  <button onclick="showPage('trends')" id="nav-trends">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    Trends
-  </button>
   <button onclick="showPage('dose')" id="nav-dose">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
     Dose
   </button>
-  <button onclick="showPage('maint')" id="nav-maint">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-    Maint<span class="nav-badge" id="maint-badge"></span>
+  <button onclick="showPage('settings')" id="nav-settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Settings<span class="nav-badge" id="maint-badge"></span>
   </button>
 </nav>
 
@@ -550,7 +520,8 @@ const PARAM_COLORS = {
   mg:'#ec4899',po4:'#eab308',no2:'#ef4444',no3:'#14b8a6',
 };
 const RS = { A: 1300, B: 35.7, C: 1100 };
-const DSR_KH_FACTOR = 3;
+const DSR_KH_FACTOR = 3;  // g per 100L per 1 dKH — DSR KH+
+const DSR_CONC = 9;       // g per 100ml — 90g per 1L (9g = 1 dKH per 300L, so 100ml = 1 dKH)
 const MGFLAKE_FACTOR = 119.56;
 const MGCL2_FACTOR = 119.56;
 
@@ -577,7 +548,7 @@ function loadCfg() {
 }
 function saveCfg() {
   const cfg = {
-    volume: parseNum(document.getElementById('cfg-volume').value)||275,
+    volume: parseNum(document.getElementById('cfg-volume').value)||300,
     awc:    parseNum(document.getElementById('cfg-awc').value)||1.9,
     saltCa: parseNum(document.getElementById('cfg-salt-ca').value)||420,
     saltAlk:parseNum(document.getElementById('cfg-salt-alk').value)||8.3,
@@ -590,7 +561,7 @@ function saveCfg() {
 }
 function getCfg() {
   const c=loadCfg();
-  return { volume:c.volume||275, awc:c.awc||1.9, saltCa:c.saltCa||420, saltAlk:c.saltAlk||8.3, saltMg:c.saltMg||1280, partD:c.partD||'Reef Energy' };
+  return { volume:c.volume||300, awc:c.awc||1.9, saltCa:c.saltCa||420, saltAlk:c.saltAlk||8.3, saltMg:c.saltMg||1280, partD:c.partD||'Reef Energy' };
 }
 
 // ─── Historical seed ──────────────────────────────────────────────────────────
@@ -775,8 +746,7 @@ function saveDashNote() {
     savedRec=records[idx];
     showToast('Note added ✓');
   } else {
-    // Fixed: use noon UTC on local date to prevent timezone duplicates
-    const rec={ts:today+'T12:00:00.000Z',notes:note};
+    const rec={ts:new Date().toISOString(),notes:note};
     PARAMS.forEach(p=>rec[p.key]=null);
     records.push(rec);
     records.sort((a,b)=>new Date(a.ts)-new Date(b.ts));
@@ -798,9 +768,8 @@ function initLogForm() {
 function saveLog() {
   const dt=document.getElementById('log-datetime').value;
   if(!dt){showToast('Set a date/time','error');return;}
-  // Fixed: normalize to noon UTC on local date — prevents timezone duplicate entries
   const d=new Date(dt);
-  const record={ts:localDateKey(d)+'T12:00:00.000Z'};
+  const record={ts:d.toISOString()};
   let hasAny=false;
   PARAMS.forEach(p=>{
     const v=document.getElementById(`log-${p.key}`).value;
@@ -876,9 +845,8 @@ function saveEdit() {
   if(editIndex===null)return;
   const dt=document.getElementById('edit-datetime').value;
   if(!dt){showToast('Set a date/time','error');return;}
-  // Fixed: noon UTC normalization
   const d=new Date(dt);
-  const records=loadRecords(), record={ts:localDateKey(d)+'T12:00:00.000Z'};
+  const records=loadRecords(), record={ts:d.toISOString()};
   PARAMS.forEach(p=>{const v=document.getElementById(`edit-${p.key}`).value; record[p.key]=v!==''?parseNum(v):null;});
   record.notes=document.getElementById('edit-notes').value.trim();
   records[editIndex]=record; records.sort((a,b)=>new Date(a.ts)-new Date(b.ts));
@@ -1260,6 +1228,109 @@ function calcDailyDose() {
     </div>`;
 }
 
+// ── Alk Consumption Analyser ──────────────────────────────────────────────────
+function calcAlkAnalysis() {
+  const cfg=getCfg();
+  const V=cfg.volume, awcFrac=cfg.awc/100;
+  const tgtAlk=parseNum(document.getElementById('mn-tgt-alk').value)||9.0;
+  const dsrConc=DSR_CONC; // 25g per 100ml — hardcoded standard mix
+  const el=document.getElementById('alk-analysis-results');
+
+  // Up to 10 most recent readings with Alk
+  const alkRecs=loadRecords().filter(r=>r.alk!==null&&r.alk!==undefined).slice(-10);
+  if(alkRecs.length<2){
+    el.innerHTML='<div class="dose-warn" style="margin-top:10px">Need at least 2 Alk readings to analyse.</div>';
+    return;
+  }
+
+  // Per-interval consumption rates (newest interval first)
+  const rates=[];
+  for(let i=alkRecs.length-1;i>0;i--){
+    const r1=alkRecs[i], r2=alkRecs[i-1]; // r1=newer, r2=older
+    const days=Math.max((new Date(r1.ts)-new Date(r2.ts))/(1000*86400),0.5);
+    const observed=(r2.alk-r1.alk)/days; // positive = consuming
+    const avgAlk=(r1.alk+r2.alk)/2;
+    const awcDaily=(cfg.saltAlk-avgAlk)*awcFrac;
+    const coral=observed+awcDaily;
+    rates.push({date:r1.ts,days,coral,from:r2.alk,to:r1.alk});
+  }
+
+  const avg=rates.reduce((s,r)=>s+r.coral,0)/rates.length;
+
+  // Trend: compare recent half vs older half
+  const half=Math.max(1,Math.floor(rates.length/2));
+  const recentAvg=rates.slice(0,half).reduce((s,r)=>s+r.coral,0)/half;
+  const olderAvg=rates.slice(half).length?rates.slice(half).reduce((s,r)=>s+r.coral,0)/rates.slice(half).length:recentAvg;
+  const trendDiff=recentAvg-olderAvg;
+  const trend=Math.abs(trendDiff)<0.005?'stable':trendDiff>0?'increasing':'decreasing';
+  const trendIcon=trend==='stable'?'→':trend==='increasing'?'↑':'↓';
+  const trendColor=trend==='stable'?'var(--green)':trend==='increasing'?'var(--yellow)':'var(--accent)';
+
+  // Confidence: coefficient of variation
+  const stdDev=Math.sqrt(rates.reduce((s,r)=>s+Math.pow(r.coral-avg,2),0)/rates.length);
+  const cv=avg>0?stdDev/avg:1;
+  const conf=cv<0.15?'High':cv<0.35?'Medium':'Low';
+  const confColor=conf==='High'?'var(--green)':conf==='Medium'?'var(--yellow)':'var(--red)';
+
+  // Reefdose 4 output
+  const awcAtTgt=(cfg.saltAlk-tgtAlk)*awcFrac;
+  const netNeed=Math.max(0,avg-awcAtTgt);
+  const gPerDay=netNeed*V*DSR_KH_FACTOR/100;
+  const mlPerDay=gPerDay/(dsrConc/100);
+  const mlPerHour=mlPerDay/24;
+
+  const periodRows=rates.map(r=>{
+    const d=new Date(r.date);
+    const lbl=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+    return`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px">
+      <span style="color:var(--text2)">${lbl}</span>
+      <span style="color:var(--text2)">${r.from.toFixed(1)}→${r.to.toFixed(1)} dKH</span>
+      <span style="color:var(--text);font-weight:600">${r.coral>0?'+':''}${r.coral.toFixed(3)}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`<div style="margin-top:14px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.4px">Avg rate</div>
+        <div style="font-size:22px;font-weight:900;color:var(--text);margin:4px 0">${avg.toFixed(3)}</div>
+        <div style="font-size:10px;color:var(--text2)">dKH / day</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.4px">Trend</div>
+        <div style="font-size:22px;font-weight:900;color:${trendColor};margin:4px 0">${trendIcon}</div>
+        <div style="font-size:10px"><span style="color:var(--text2)">${trend}</span> · <span style="color:${confColor}">${conf} confidence</span></div>
+      </div>
+    </div>
+    <div style="background:rgba(0,119,200,0.07);border:1px solid rgba(0,119,200,0.2);border-radius:12px;padding:12px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px">📡 Reefdose 4 — DSR KH+</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div style="text-align:center">
+          <div style="font-size:26px;font-weight:900;color:var(--accent)">${mlPerDay.toFixed(1)}</div>
+          <div style="font-size:11px;color:var(--text2)">ml / day</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:26px;font-weight:900;color:var(--accent)">${mlPerHour.toFixed(3)}</div>
+          <div style="font-size:11px;color:var(--text2)">ml / hour</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--text2);border-top:1px solid rgba(0,119,200,0.15);padding-top:8px">
+        ${dsrConc}g/100ml mix · Net need ${netNeed.toFixed(3)} dKH/day after AWC · ${gPerDay.toFixed(2)}g DSR KH+ / day
+      </div>
+      <div style="margin-top:8px;background:rgba(0,168,107,0.07);border:1px solid rgba(0,168,107,0.2);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--text2)">
+        🧪 <strong style="color:var(--green)">Bottle prep:</strong> dissolve <strong style="color:var(--text)">${(dsrConc*10).toFixed(0)}g</strong> DSR KH+ in 1L RODI water · lasts <strong style="color:var(--text)">${mlPerDay>0?(1000/mlPerDay).toFixed(0):'–'} days</strong> at this rate
+      </div>
+    </div>
+    <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px">Last ${rates.length} interval${rates.length!==1?'s':''} (${alkRecs.length} readings)</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid var(--border);margin-bottom:2px">
+        <span>Date</span><span>Alk range</span><span>Consumption</span>
+      </div>
+      ${periodRows}
+    </div>
+  </div>`;
+}
+
 // ── AWC Drift ─────────────────────────────────────────────────────────────────
 function calcAWCDrift() {
   const cfg=getCfg();
@@ -1608,11 +1679,20 @@ function showPage(name) {
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById(`page-${name}`).classList.add('active');
   document.getElementById(`nav-${name}`).classList.add('active');
-  if(name==='history') renderHistory();
-  if(name==='trends')  renderTrends();
+  if(name==='history')  { renderHistory(); }
   if(name==='dashboard') renderDashboard();
-  if(name==='dose') initDoseToTarget();
-  if(name==='maint') { renderMaint(); syncMaintFromSheets(); }
+  if(name==='dose')      initDoseToTarget();
+  if(name==='settings')  { renderMaint(); syncMaintFromSheets(); }
+}
+function showHistTab(tab) {
+  ['records','trends'].forEach(t=>{
+    const pg=document.getElementById('hist-'+t);
+    const btn=document.getElementById('hist-tab-'+t);
+    if(pg) pg.classList.toggle('active', t===tab);
+    if(btn) btn.classList.toggle('active', t===tab);
+  });
+  if(tab==='trends') renderTrends();
+  else renderHistory();
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
