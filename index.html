@@ -753,7 +753,7 @@ function buildGaugeDetail(key) {
   if (CONSUMPTION_KEYS.includes(key) && prev) {
     const days = Math.max((new Date(latest.ts)-new Date(prev.ts))/86400000, 0.5);
     const drop = parseNum(String(prev[key])) - parseNum(String(latest[key]));
-    const perDay = (drop/days).toFixed(3);
+    const perDay = (drop/days).toFixed(1);
     const d1 = new Date(prev.ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
     const d2 = new Date(latest.ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
     statsHTML = `<div style="display:flex;gap:6px;margin-bottom:9px">
@@ -764,7 +764,7 @@ function buildGaugeDetail(key) {
       </div>
       <div style="flex:1;background:#0a0e1a;border-radius:8px;padding:7px 9px;border:1px solid #131d30">
         <div style="font-size:9px;color:#4a7aaa">Drop</div>
-        <div style="font-size:14px;font-weight:600;color:${drop>0?'#fb923c':'#38bdf8'};margin-top:1px">${drop>0?'▼':drop<0?'▲':'—'} ${Math.abs(drop).toFixed(3)}</div>
+        <div style="font-size:14px;font-weight:600;color:${drop>0?'#fb923c':'#38bdf8'};margin-top:1px">${drop>0?'▼':drop<0?'▲':'—'} ${Math.abs(drop).toFixed(1)}</div>
         <div style="font-size:9px;color:#1e3d6e">over ${Math.round(days)} days</div>
       </div>
     </div>`;
