@@ -8,9 +8,9 @@
 <title>Reef Monitor</title>
 <style>
   :root {
-    --bg:#0a0e1a; --bg2:#0d1628; --bg3:#08111f; --card:#0d1628;
-    --border:#1a2640; --text:#e2eeff; --text2:#7ca8d4;
-    --accent:#38bdf8; --green:#38bdf8; --yellow:#fb923c; --red:#f87171;
+    --bg:#fef9f6; --bg2:#fff8f5; --bg3:#fef2eb; --card:#ffffff;
+    --border:#fde8db; --text:#7c2d12; --text2:#a05a3a;
+    --accent:#ea580c; --green:#16a34a; --yellow:#d97706; --red:#dc2626;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:84px;}
@@ -47,11 +47,11 @@
   .gauge-zone.g-warn{background:rgba(224,149,0,0.13);}
   .gauge-zone.g-warn.left-end{border-radius:6px 0 0 6px;}
   .gauge-zone.g-warn.right-end{border-radius:0 6px 6px 0;}
-  .gauge-dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;transform:translate(-50%,-50%);border:2px solid #0a0e1a;box-shadow:0 0 7px rgba(56,189,248,0.5);z-index:2;}
+  .gauge-dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;transform:translate(-50%,-50%);border:2px solid #fef9f6;box-shadow:0 0 7px rgba(234,88,12,0.4);z-index:2;}
   .gauge-dot.ok{background:var(--green);}
   .gauge-dot.warn{background:var(--yellow);}
   .gauge-dot.bad{background:var(--red);}
-  .gauge-dot-prev{position:absolute;top:50%;width:8px;height:8px;border-radius:50%;transform:translate(-50%,-50%);background:#1e3d6e;border:1.5px solid #0a0e1a;z-index:1;}
+  .gauge-dot-prev{position:absolute;top:50%;width:8px;height:8px;border-radius:50%;transform:translate(-50%,-50%);background:#f5ceb4;border:1.5px solid #fde8db;z-index:1;}
   .gauge-prev-val{position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);font-size:9px;color:#8a9bb0;font-weight:600;white-space:nowrap;line-height:1;}
   .gauge-ends{display:flex;justify-content:space-between;font-size:9px;color:var(--text2);}
 
@@ -105,7 +105,7 @@
   .empty-state svg{margin:0 auto 12px;display:block;opacity:0.25;}
 
   /* Modal */
-  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,32,53,0.5);z-index:300;align-items:flex-end;justify-content:center;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(124,45,18,0.25);z-index:300;align-items:flex-end;justify-content:center;}
   .modal-overlay.open{display:flex;}
   .modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:20px 16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
   .modal-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;justify-content:space-between;}
@@ -264,61 +264,64 @@
   .nav-badge{position:absolute;top:4px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid var(--bg);display:none;}
   .nav-badge.show{display:block;}
 
-  /* ── Dark Ocean Theme ─────────────────────────────────────────────── */
-  body { background: #0a0e1a; color: #e2eeff; }
-  nav { background: #070c18; border-top: 1px solid #131d30; }
-  nav button { color: #2a4070; }
-  nav button.active { color: #38bdf8; }
-  .page { background: #0a0e1a; }
-  .dose-card, .set-card, .card { background: #0d1628; border: 1px solid #1a2640; }
-  .dose-card-title, .set-card-title { color: #7ca8d4; }
-  input, select { background: #060a14; border: 1px solid #1a2640; color: #e2eeff; }
-  input:focus { border-color: #0369a1; outline: none; }
-  button.primary-btn, .save-btn { background: #0c2a4a; border: 1px solid #0369a1; color: #38bdf8; }
+  /* ── Coral Reef Theme ─────────────────────────────────────────────── */
+  body { background: #fef9f6; color: #7c2d12; }
+  nav { background: #fff8f5; border-top: 1px solid #fde8db; box-shadow: 0 -1px 8px rgba(234,88,12,0.06); }
+  nav button { color: #c4855a; }
+  nav button.active { color: #ea580c; }
+  .page { background: #fef9f6; }
+  .dose-card, .set-card, .card { background: #ffffff; border: 1px solid #fde8db; }
+  .dose-card-title, .set-card-title { color: #a05a3a; }
+  input, select { background: #fef2eb; border: 1px solid #fde8db; color: #7c2d12; }
+  input:focus { border-color: #ea580c; outline: none; }
+  button.primary-btn, .save-btn { background: #fff1eb; border: 1px solid #fca97a; color: #ea580c; }
   /* Gauge */
-  .gauge-lbl-name { color: #7ca8d4; font-weight: 500; }
-  .gauge-lbl-val.ok { color: #38bdf8; }
-  .gauge-lbl-val.warn { color: #fb923c; }
-  .gauge-lbl-val.hi, .gauge-lbl-val.danger { color: #f87171; }
-  .gauge-bar { background: #0d1628; }
-  .gauge-zone.g-ok { background: linear-gradient(90deg,#0369a1,#0ea5e9); opacity: 0.6; }
-  .gauge-zone.g-warn { background: #7c2d12; opacity: 0.65; }
-  .gauge-dot.ok { background: #38bdf8; box-shadow: 0 0 7px rgba(56,189,248,0.7); }
-  .gauge-dot.warn { background: #fb923c; box-shadow: 0 0 7px rgba(251,146,60,0.6); }
-  .gauge-dot.hi, .gauge-dot.danger { background: #f87171; box-shadow: 0 0 7px rgba(248,113,113,0.6); }
-  /* Section divider */
-  .dash-section-label { font-size: 10px; font-weight: 700; color: #1e3d6e; text-transform: uppercase; letter-spacing: 0.8px; padding: 10px 0 4px; border-top: 1px solid #111d30; margin-top: 4px; }
+  .gauge-lbl-name { color: #a05a3a; font-weight: 600; }
+  .gauge-lbl-val.ok { color: #16a34a; }
+  .gauge-lbl-val.warn { color: #d97706; }
+  .gauge-lbl-val.hi, .gauge-lbl-val.danger { color: #dc2626; }
+  .gauge-bar { background: #fef2eb; }
+  .gauge-zone.g-ok { background: rgba(22,163,74,0.18); border-radius: 0; }
+  .gauge-zone.g-warn { background: rgba(217,119,6,0.14); }
+  .gauge-dot { border: 2px solid #fef9f6; }
+  .gauge-dot.ok { background: #16a34a; box-shadow: 0 0 7px rgba(22,163,74,0.5); }
+  .gauge-dot.warn { background: #d97706; box-shadow: 0 0 7px rgba(217,119,6,0.5); }
+  .gauge-dot.hi, .gauge-dot.danger, .gauge-dot.bad { background: #dc2626; box-shadow: 0 0 7px rgba(220,38,38,0.5); }
+  .gauge-dot-prev { background: #f5ceb4; border: 1.5px solid #fde8db; }
+  .gauge-prev-val { color: #c4855a; }
+  /* Section labels — coloured pill badges */
+  .dash-section-label { display: inline-flex; align-items: center; font-size: 9px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; margin: 10px 0 6px; background: #fff1eb; color: #ea580c; border: 1px solid #fca97a; }
   /* History chips */
-  .hist-chip { background: #0d1628; color: #4a7aaa; border-radius: 10px; padding: 2px 7px; font-size: 10px; }
-  .hist-chip.ok { background: #082240; color: #38bdf8; }
-  .hist-chip.warn { background: #2d1500; color: #fb923c; }
-  .hist-chip.hi { background: #2d0f0f; color: #f87171; }
+  .hist-chip { background: #fef2eb; color: #a05a3a; border-radius: 10px; padding: 2px 7px; font-size: 10px; }
+  .hist-chip.ok { background: #dcfce7; color: #15803d; }
+  .hist-chip.warn { background: #fef9c3; color: #a16207; }
+  .hist-chip.hi { background: #fee2e2; color: #b91c1c; }
   /* Gauge row tappable */
   .gauge-row { cursor: pointer; border-radius: 9px; padding: 6px 7px; transition: background 0.12s; }
-  .gauge-row:hover, .gauge-row.gauge-row-active { background: #0d1628; }
+  .gauge-row:hover, .gauge-row.gauge-row-active { background: #fff1eb; }
   /* Detail panel */
-  .gauge-detail-panel { background: #08111f; border: 1px solid #1a2640; border-radius: 10px; padding: 11px; margin: 4px 0 7px; display: none; }
+  .gauge-detail-panel { background: #fff8f5; border: 1px solid #fde8db; border-radius: 10px; padding: 11px; margin: 4px 0 7px; display: none; box-shadow: 0 2px 8px rgba(234,88,12,0.06); }
   /* Field rows */
-  .field-row { display: grid; grid-template-columns: 1fr 90px; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid #111d30; }
-  .field-row label { font-size: 12px; color: #7ca8d4; }
-  .field-row input { background: #060a14; border: 1px solid #1a2640; border-radius: 7px; padding: 6px 10px; font-size: 14px; color: #e2eeff; text-align: right; width: 100%; -webkit-appearance: none; }
+  .field-row { display: grid; grid-template-columns: 1fr 90px; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid #fde8db; }
+  .field-row label { font-size: 12px; color: #a05a3a; }
+  .field-row input { background: #fef2eb; border: 1px solid #fde8db; border-radius: 7px; padding: 6px 10px; font-size: 14px; color: #7c2d12; text-align: right; width: 100%; -webkit-appearance: none; }
 </style>
 </head>
 <body>
 
-<div id="app-header" style="background:linear-gradient(160deg,#0d1730 0%,#0a1224 100%);padding:14px 16px 11px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1a2640;position:sticky;top:0;z-index:10">
+<div id="app-header" style="background:linear-gradient(160deg,#fff8f5 0%,#fef2eb 100%);padding:14px 16px 11px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #fde8db;position:sticky;top:0;z-index:10;box-shadow:0 1px 8px rgba(234,88,12,0.07)">
   <div style="display:flex;align-items:center;gap:9px">
-    <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#0055b3,#0099e6);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 3px 10px rgba(0,153,230,0.35)">🐠</div>
+    <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#ea580c,#f97316);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 3px 10px rgba(234,88,12,0.35)">🐠</div>
     <div>
-      <div style="font-size:15px;font-weight:700;color:#e2eeff;letter-spacing:-0.4px">ReefLog</div>
-      <div id="header-vol" style="font-size:9px;color:#3a5a8a;margin-top:1px">reef monitor</div>
+      <div style="font-size:15px;font-weight:700;color:#7c2d12;letter-spacing:-0.4px">ReefLog</div>
+      <div id="header-vol" style="font-size:9px;color:#c4855a;margin-top:1px">reef monitor</div>
     </div>
   </div>
   <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
     <div id="overall-status"></div>
     <div id="sync-status" style="font-size:10px;font-weight:600"></div>
   </div>
-  <div id="header-badge" style="font-size:10px;color:#3a5a8a;background:#111d33;padding:3px 9px;border-radius:6px;border:1px solid #1a2640">300 L</div>
+  <div id="header-badge" style="font-size:10px;color:#c4855a;background:#fff1eb;padding:3px 9px;border-radius:6px;border:1px solid #fde8db">300 L</div>
 </div>
 
 <!-- DASHBOARD -->
@@ -406,15 +409,15 @@
     <div class="dose-info" style="margin-top:4px">AWC removes <strong id="awc-litres">5.7L</strong>/day.</div>
   </div>
 
-  <div class="dose-card" style="border-color:#0c2a4a;margin-bottom:12px">
+  <div class="dose-card" style="border-color:#fde8db;margin-bottom:12px">
     <div class="dose-card-title">🧂 Saltwater mix — Mg correction (AF Mg Flakes)</div>
     <div class="field-row"><label>Batch size (L)</label><input type="text" id="cfg-mg-batch" inputmode="decimal" value="30" oninput="this.value=this.value.replace(',','.')"></div>
     <div class="field-row"><label>Salt Mg (ppm)</label><input type="text" id="cfg-mg-salt" inputmode="decimal" value="1280" oninput="this.value=this.value.replace(',','.')"></div>
     <div class="field-row"><label>Target Mg (ppm)</label><input type="text" id="cfg-mg-target" inputmode="decimal" value="1300" oninput="this.value=this.value.replace(',','.')"></div>
-    <button onclick="calcMgBatch()" style="width:100%;margin-top:8px;padding:9px;background:#082240;border:1px solid #0369a1;border-radius:8px;color:#38bdf8;font-size:12px;font-weight:600;cursor:pointer">Calculate AF Mg Flakes per batch</button>
-    <div id="mg-batch-result" style="display:none;margin-top:8px;background:#060a14;border-radius:7px;padding:8px 10px;border:1px solid #131d30">
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:#4a7aaa;margin-bottom:3px">Mg deficit per batch <span id="mg-batch-deficit" style="color:#38bdf8;font-weight:600">—</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:#4a7aaa">AF Mg Flakes to add <span id="mg-batch-flakes" style="color:#38bdf8;font-weight:600">—</span></div>
+    <button onclick="calcMgBatch()" style="width:100%;margin-top:8px;padding:9px;background:#fff1eb;border:1px solid #fca97a;border-radius:8px;color:#ea580c;font-size:12px;font-weight:600;cursor:pointer">Calculate AF Mg Flakes per batch</button>
+    <div id="mg-batch-result" style="display:none;margin-top:8px;background:#fef2eb;border-radius:7px;padding:8px 10px;border:1px solid #fde8db">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#a05a3a;margin-bottom:3px">Mg deficit per batch <span id="mg-batch-deficit" style="color:#ea580c;font-weight:600">—</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#a05a3a">AF Mg Flakes to add <span id="mg-batch-flakes" style="color:#ea580c;font-weight:600">—</span></div>
     </div>
   </div>
 
@@ -494,12 +497,12 @@ const PARAMS = [
   {key:'temp',    label:'Temp',    unit:'°C',  lo:24,   hi:27,    warn_lo:23,   warn_hi:28.5 },
   {key:'alk',     label:'Alk',     unit:'dKH', lo:8,    hi:9,     warn_lo:7,    warn_hi:11   },
   {key:'ca',      label:'Ca',      unit:'ppm', lo:400,  hi:480,   warn_lo:330,  warn_hi:550  },
-  {key:'mg',      label:'Mg',      unit:'ppm', lo:1300, hi:1450,  warn_lo:1100, warn_hi:1600 },
-  {key:'po4',     label:'PO₄',     unit:'ppm', lo:0,    hi:0.1,   warn_lo:0,    warn_hi:0.2  },
-  {key:'no3',     label:'NO₃',     unit:'ppm', lo:5,    hi:15,    warn_lo:0,    warn_hi:20   },
+  {key:'mg',      label:'Mg',      unit:'ppm', lo:1350, hi:1450,  warn_lo:1100, warn_hi:1600 },
+  {key:'po4',     label:'PO₄',     unit:'ppm', lo:0.08, hi:0.18,  warn_lo:0,    warn_hi:0.3  },
+  {key:'no3',     label:'NO₃',     unit:'ppm', lo:10,   hi:20,    warn_lo:0,    warn_hi:30   },
 ];
 const PARAM_COLORS = {
-  salinity:'#38bdf8',temp:'#f97316',alk:'#a78bfa',ca:'#22c55e',
+  salinity:'#1d4ed8',temp:'#f97316',alk:'#a78bfa',ca:'#22c55e',
   mg:'#ec4899',po4:'#eab308',no3:'#14b8a6',
 };
 const RS = { A: 1300, B: 35.7, C: 1100 };
@@ -706,22 +709,22 @@ function renderDashGauges(records) {
         </div>
         <div class="gauge-ends">
           <span>${p.warn_lo}</span>
-          <span style="color:#38bdf8;font-weight:600">${p.lo}–${p.hi}</span>
+          <span style="color:#ea580c;font-weight:600">${p.lo}–${p.hi}</span>
           <span>${p.warn_hi}</span>
         </div>
       </div>
     </div><div id="gauge-detail-${p.key}" class="gauge-detail-panel"></div>`;
   }
 
-  const sectionLabel=txt=>`<div class="dash-section-label">${txt}</div>`;
+  const sectionLabel=(txt,bg,border,col)=>`<div class="dash-section-label" style="background:${bg};border-color:${border};color:${col}">${txt}</div>`;
   const majorRows=PARAMS.filter(p=>MAJOR_KEYS.includes(p.key)).map(buildRow).join('');
   const nutrientRows=PARAMS.filter(p=>NUTRIENT_KEYS.includes(p.key)).map(buildRow).join('');
   const waterRows=PARAMS.filter(p=>WATER_KEYS.includes(p.key)).map(buildRow).join('');
 
-  card.innerHTML=`<div class="dash-chart-title">green = target · coloured dot = latest · grey = previous</div>
-    ${sectionLabel('Major elements')}${majorRows}
-    ${sectionLabel('Nutrients')}${nutrientRows}
-    ${sectionLabel('Water conditions')}${waterRows}`;
+  card.innerHTML=`<div class="dash-chart-title" style="color:#c4855a">dot = latest · grey = previous · green zone = target</div>
+    ${sectionLabel('⬡ Major elements','#fff1eb','#fca97a','#ea580c')}${majorRows}
+    ${sectionLabel('◈ Nutrients','#f0fdf4','#86efac','#15803d')}${nutrientRows}
+    ${sectionLabel('~ Water conditions','#eff6ff','#93c5fd','#1d4ed8')}${waterRows}`;
 }
 
 // ─── Gauge detail panels ──────────────────────────────────────────────────────
@@ -739,48 +742,71 @@ function toggleGaugeDetail(key) {
 }
 
 function buildGaugeDetail(key) {
+  try {
   const CONSUMPTION_KEYS = ['alk','ca','mg'];
   const p = PARAMS.find(x => x.key === key);
+  if (!p) return `<div style="padding:8px;color:#dc2626;font-size:11px">Unknown param: ${key}</div>`;
   const records = loadRecords();
-  const withVal = records.filter(r => r[key] !== null && r[key] !== undefined);
+  const withVal = records.filter(r => r[key] !== null && r[key] !== undefined && r[key] !== '');
   const last5 = withVal.slice(-5);
-  if (last5.length < 1) return '<div style="padding:8px;color:#3a5a8a;font-size:11px">No data yet</div>';
+  if (last5.length < 1) return `<div style="padding:8px;color:#a05a3a;font-size:11px">No ${p.label} readings logged yet</div>`;
   const latest = last5[last5.length-1];
   const prev = last5.length >= 2 ? last5[last5.length-2] : null;
-  const closeBtn = `<div onclick="toggleGaugeDetail('${key}')" style="font-size:10px;color:#2a4070;cursor:pointer;padding:2px 8px;border-radius:5px;border:1px solid #1a2640">✕</div>`;
+  const closeBtn = `<div onclick="toggleGaugeDetail('${key}')" style="font-size:10px;color:#c4855a;cursor:pointer;padding:2px 8px;border-radius:5px;border:1px solid #fde8db">✕</div>`;
 
   let statsHTML = '';
-  if (CONSUMPTION_KEYS.includes(key) && prev) {
-    const days = Math.max((new Date(latest.ts)-new Date(prev.ts))/86400000, 0.5);
-    const drop = parseNum(String(prev[key])) - parseNum(String(latest[key]));
-    const perDay = (drop/days).toFixed(1);
-    const d1 = new Date(prev.ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-    const d2 = new Date(latest.ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-    statsHTML = `<div style="display:flex;gap:6px;margin-bottom:9px">
-      <div style="flex:1;background:#0a0e1a;border-radius:8px;padding:7px 9px;border:1px solid #131d30">
-        <div style="font-size:9px;color:#4a7aaa">Daily consumption</div>
-        <div style="font-size:14px;font-weight:600;color:#38bdf8;margin-top:1px">${perDay} ${p.unit}</div>
-        <div style="font-size:9px;color:#1e3d6e">${d1} → ${d2} (${Math.round(days)}d)</div>
-      </div>
-      <div style="flex:1;background:#0a0e1a;border-radius:8px;padding:7px 9px;border:1px solid #131d30">
-        <div style="font-size:9px;color:#4a7aaa">Drop</div>
-        <div style="font-size:14px;font-weight:600;color:${drop>0?'#fb923c':'#38bdf8'};margin-top:1px">${drop>0?'▼':drop<0?'▲':'—'} ${Math.abs(drop).toFixed(1)}</div>
-        <div style="font-size:9px;color:#1e3d6e">over ${Math.round(days)} days</div>
-      </div>
-    </div>`;
+  if (CONSUMPTION_KEYS.includes(key)) {
+    if (prev) {
+      const days = Math.max((new Date(latest.ts)-new Date(prev.ts))/86400000, 0.5);
+      const v1 = parseNum(String(prev[key]));
+      const v2 = parseNum(String(latest[key]));
+      const drop = v1 - v2;
+      const perDay = isNaN(drop) ? '—' : (drop/days).toFixed(2);
+      const dropStr = isNaN(drop) ? '—' : `${drop>0?'▼':drop<0?'▲':'='} ${Math.abs(drop).toFixed(2)}`;
+      const dropColor = drop>0?'#d97706':'#16a34a';
+      const d1 = new Date(prev.ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+      const d2 = new Date(latest.ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+      statsHTML = `<div style="display:flex;gap:6px;margin-bottom:9px">
+        <div style="flex:1;background:#fff1eb;border-radius:8px;padding:7px 9px;border:1px solid #fde8db">
+          <div style="font-size:9px;color:#a05a3a">Daily consumption</div>
+          <div style="font-size:14px;font-weight:600;color:#ea580c;margin-top:1px">${perDay} ${p.unit}</div>
+          <div style="font-size:9px;color:#c4855a">${d1} → ${d2} (${Math.round(days)}d)</div>
+        </div>
+        <div style="flex:1;background:#fff1eb;border-radius:8px;padding:7px 9px;border:1px solid #fde8db">
+          <div style="font-size:9px;color:#a05a3a">Drop</div>
+          <div style="font-size:14px;font-weight:600;color:${dropColor};margin-top:1px">${dropStr}</div>
+          <div style="font-size:9px;color:#c4855a">over ${Math.round(days)} days</div>
+        </div>
+      </div>`;
+    } else {
+      const latestVal = parseNum(String(latest[key]));
+      const d = new Date(latest.ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+      statsHTML = `<div style="display:flex;gap:6px;margin-bottom:9px">
+        <div style="flex:1;background:#fff1eb;border-radius:8px;padding:7px 9px;border:1px solid #fde8db">
+          <div style="font-size:9px;color:#a05a3a">Latest reading</div>
+          <div style="font-size:14px;font-weight:600;color:#ea580c;margin-top:1px">${latestVal} ${p.unit}</div>
+          <div style="font-size:9px;color:#c4855a">${d}</div>
+        </div>
+        <div style="flex:1;background:#fff1eb;border-radius:8px;padding:7px 9px;border:1px solid #fde8db">
+          <div style="font-size:9px;color:#a05a3a">Consumption</div>
+          <div style="font-size:14px;font-weight:600;color:#d4b8a8;margin-top:1px">—</div>
+          <div style="font-size:9px;color:#c4855a">need 2+ readings</div>
+        </div>
+      </div>`;
+    }
   }
 
   // For sal/temp: just show list, no sparkline
   if (key==='salinity'||key==='temp') {
     const list = last5.map(r=>{
       const d=new Date(r.ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-      return `<span style="font-size:11px;color:#4a7aaa">${d}&nbsp;<span style="color:#7dd3fc;font-weight:500">${r[key]}</span></span>`;
+      return `<span style="font-size:11px;color:#a05a3a">${d}&nbsp;<span style="color:#ea580c;font-weight:600">${r[key]}</span></span>`;
     }).join('');
-    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><div style="font-size:12px;font-weight:600;color:#c7deff">${p.label} — last 5</div>${closeBtn}</div><div style="display:flex;flex-wrap:wrap;gap:6px 12px">${list}</div>`;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><div style="font-size:12px;font-weight:600;color:#7c2d12">${p.label} — last 5</div>${closeBtn}</div><div style="display:flex;flex-wrap:wrap;gap:6px 12px">${list}</div>`;
   }
 
   // Sparkline
-  if (last5.length < 2) return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><div style="font-size:12px;font-weight:600;color:#c7deff">${p.label}</div>${closeBtn}</div>${statsHTML}<div style="font-size:10px;color:#3a5a8a">Need 2+ readings</div>`;
+  if (last5.length < 2) return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><div style="font-size:12px;font-weight:600;color:#7c2d12">${p.label}</div>${closeBtn}</div>${statsHTML}<div style="font-size:10px;color:#c4855a">Need 2+ readings for sparkline</div>`;
 
   const vals = last5.map(r=>parseNum(String(r[key])));
   const dates = last5.map(r=>new Date(r.ts));
@@ -793,20 +819,23 @@ function buildGaugeDetail(key) {
   const poly=pts.map(pt=>pt.join(',')).join(' ');
   const area=pts.map(pt=>pt.join(',')).join(' ')+` ${W},${H} 0,${H}`;
   const okY1=Math.max(0,Math.min(H,py(p.hi))), okY2=Math.max(0,Math.min(H,py(p.lo)));
-  const dots=pts.map((pt,i)=>`<circle cx="${pt[0]}" cy="${pt[1]}" r="${i===pts.length-1?3.5:2.5}" fill="${i===pts.length-1?'#38bdf8':'#0ea5e9'}" opacity="${i===pts.length-1?1:(0.4+i*0.1)}"/>`).join('');
-  const lbls=pts.map((pt,i)=>`<text x="${pt[0]}" y="${Math.min(H-2,pt[1]+10)}" font-size="8" fill="${i===pts.length-1?'#38bdf8':'#2a5080'}" text-anchor="${i===0?'start':i===pts.length-1?'end':'middle'}"${i===pts.length-1?' font-weight="600"':''}>${vals[i]}</text>`).join('');
+  const dots=pts.map((pt,i)=>`<circle cx="${pt[0]}" cy="${pt[1]}" r="${i===pts.length-1?3.5:2.5}" fill="${i===pts.length-1?'#ea580c':'#f97316'}" opacity="${i===pts.length-1?1:(0.4+i*0.12)}"/>`).join('');
+  const lbls=pts.map((pt,i)=>`<text x="${pt[0]}" y="${Math.min(H-2,pt[1]+10)}" font-size="8" fill="${i===pts.length-1?'#ea580c':'#c4855a'}" text-anchor="${i===0?'start':i===pts.length-1?'end':'middle'}"${i===pts.length-1?' font-weight="600"':''}>${vals[i]}</text>`).join('');
   const dateLbls=last5.map(r=>new Date(r.ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'})).map(d=>`<span>${d}</span>`).join('');
 
-  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><div style="font-size:12px;font-weight:600;color:#c7deff">${p.label} — last 5</div>${closeBtn}</div>
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><div style="font-size:12px;font-weight:600;color:#7c2d12">${p.label} — last 5</div>${closeBtn}</div>
   ${statsHTML}
   <svg width="100%" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="gd-${key}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.3"/><stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/></linearGradient></defs>
-    <rect x="0" y="${okY1}" width="${W}" height="${Math.max(0,okY2-okY1)}" fill="#0369a1" opacity="0.15" rx="2"/>
+    <defs><linearGradient id="gd-${key}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f97316" stop-opacity="0.25"/><stop offset="100%" stop-color="#f97316" stop-opacity="0"/></linearGradient></defs>
+    <rect x="0" y="${okY1}" width="${W}" height="${Math.max(0,okY2-okY1)}" fill="#16a34a" opacity="0.1" rx="2"/>
     <polygon points="${area}" fill="url(#gd-${key})"/>
-    <polyline points="${poly}" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="${poly}" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     ${dots}${lbls}
   </svg>
-  <div style="display:flex;justify-content:space-between;font-size:9px;color:#1e3d6e;margin-top:3px">${dateLbls}</div>`;
+  <div style="display:flex;justify-content:space-between;font-size:9px;color:#c4855a;margin-top:3px">${dateLbls}</div>`;
+  } catch(e) {
+    return `<div style="padding:8px;color:#dc2626;font-size:11px;word-break:break-all">Error: ${e.message}</div>`;
+  }
 }
 
 // ─── Dashboard quick note ─────────────────────────────────────────────────────
